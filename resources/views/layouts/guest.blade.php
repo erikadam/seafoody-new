@@ -1,35 +1,31 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Guest Area - @yield('title', 'Beranda')</title>
+<html lang="en">
+    <head>
 
-  <!-- CSS dari Aviato -->
-  <link rel="stylesheet" href="{{ asset('theme/plugins/bootstrap/css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ asset('theme/plugins/themify-icons/themify-icons.css') }}">
-  <link rel="stylesheet" href="{{ asset('theme/plugins/slick-carousel/slick/slick.css') }}">
-  <link rel="stylesheet" href="{{ asset('theme/plugins/slick-carousel/slick/slick-theme.css') }}">
-  <link rel="stylesheet" href="{{ asset('theme/css/style.css') }}">
-</head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
+
+        <title>PHPJabbers.com | Free Food Store Website Template</title>
+
+        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
+
+        <link rel="stylesheet" type="text/css" href="assets/css/font-awesome.css">
+
+        <link rel="stylesheet" href="assets/css/style.css">
+
+        </head>
 <body>
 
-  {{-- Navbar --}}
-  @include('layouts.guest-navbar')
+  @yield('content')
 
-  {{-- Konten --}}
-  <div class="main-content mt-5">
-    @yield('content')
-  </div>
+  @include('layouts.guest-footer')
 
-  {{-- Footer --}}
-  @includeIf('layouts.guest-footer')
-
-  <!-- JS dari Aviato -->
-  <script src="{{ asset('theme/plugins/jquery/jquery.min.js') }}"></script>
-  <script src="{{ asset('theme/plugins/bootstrap/js/bootstrap.min.js') }}"></script>
-  <script src="{{ asset('theme/plugins/slick-carousel/slick/slick.min.js') }}"></script>
-  <script src="{{ asset('theme/plugins/shuffle/shuffle.min.js') }}"></script>
-  <script src="{{ asset('theme/js/script.js') }}"></script>
+  <!-- JS dari template -->
+  <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
+  <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+  <!-- Tambahan script lain jika ada -->
 </body>
 </html>

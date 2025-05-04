@@ -14,4 +14,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(Product::class);
     }
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'is_approved',
+        'role',
+    ];
+
 }
+

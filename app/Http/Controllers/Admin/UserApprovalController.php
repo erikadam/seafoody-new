@@ -23,4 +23,5 @@ class UserApprovalController extends Controller
 
         return redirect()->route('admin.users.index')->with('success', 'User berhasil disetujui.');
     }
+
 }

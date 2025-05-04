@@ -73,6 +73,7 @@ Route::middleware(['auth', CheckRole::class . ':admin'])->group(function () {
     Route::get('/admin/users', [UserApprovalController::class, 'index'])->name('admin.users.index');
     Route::post('/admin/users/{user}/approve', [UserApprovalController::class, 'approve'])->name('admin.users.approve');
 
+
     // Approval Produk
     Route::get('/admin/products/pending', [ProductController::class, 'pending'])->name('admin.products.pending');
     Route::post('/admin/products/{product}/approve', [ProductController::class, 'approve'])->name('admin.products.approve');
@@ -81,6 +82,7 @@ Route::middleware(['auth', CheckRole::class . ':admin'])->group(function () {
 });
 Route::middleware(['auth', CheckRole::class . ':customer'])->group(function () {
     Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
+    Route::get('/auth/pending', [CustomerController::class, 'pending'])->name('auth.pending');
     Route::get('customer/products/create', [ProductController::class, 'create'])->name('customer.products.create');
     Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
     Route::get('customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.my-product');

@@ -4,25 +4,28 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request; // ✅ Gunakan namespace yang benar
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
-    /**
-     * Setelah login, ke mana user akan diarahkan?
-     * Ini hanya fallback, akan diabaikan jika method `authenticated()` di bawah ada.
-     *
-     * @var string
-     */
     protected $redirectTo = '/home';
 
-    /**
-     * Override method ini untuk redirect berdasarkan role.
-     */
     protected function authenticated(Request $request, $user)
     {
+        // Cek apakah user sudah disetujui
+        if (!$user->is_approved) {
+            Auth::logout();
+
+            // Kembalikan ke login dengan error
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun Anda belum disetujui oleh admin.',
+            ]);
+        }
+
+        // Redirect berdasarkan role
         if ($user->role === 'admin') {
             return redirect()->route('admin.dashboard');
         }
@@ -30,9 +33,6 @@ class LoginController extends Controller
         return redirect()->route('customer.dashboard');
     }
 
-    /**
-     * Konstruktor: hanya user tamu yang bisa akses login.
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
