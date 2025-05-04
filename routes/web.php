@@ -20,7 +20,11 @@ use App\Models\Product;
 */
 
 // Halaman depan
-Route::get('/', fn() => view('index'))->name('home');
+
+Route::get('/', function () {
+    return view('guest.home');
+})->name('guest.home');
+
 
 // Daftar produk publik
 Route::get('/products', [ProductController::class, 'index'])
