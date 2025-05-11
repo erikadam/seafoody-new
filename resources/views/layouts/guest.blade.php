@@ -1,31 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <link href="https://fonts.googleapis.com/css?family=Poppins:100,100i,200,200i,300,300i,400,400i,500,500i,600,600i,700,700i,800,800i,900,900i&display=swap" rel="stylesheet">
-
-        <title>PHPJabbers.com | Free Food Store Website Template</title>
-
-        <link rel="stylesheet" type="text/css" href="assets/css/bootstrap.min.css">
-
-        <link rel="stylesheet" type="text/css" href="assets/css/font-awesome.css">
-
-        <link rel="stylesheet" href="assets/css/style.css">
-
-        </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seafoody - @yield('title', 'Home')</title>
+  <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+</head>
 <body>
 
-  @yield('content')
+  <!-- Preloader -->
+  <div id="js-preloader" class="js-preloader">
+    <div class="preloader-inner">
+      <span class="dot"></span>
+      <div class="dots"><span></span><span></span><span></span></div>
+    </div>
+  </div>
 
-  @include('layouts.guest-footer')
+  <!-- Header -->
+  @include('partials.navbar')
 
-  <!-- JS dari template -->
-  <script src="{{ asset('assets/js/jquery.min.js') }}"></script>
-  <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-  <!-- Tambahan script lain jika ada -->
+  <!-- Main Content -->
+  <main>
+    @yield('content')
+  </main>
+
+  <!-- Footer -->
+  @include('partials.footer')
+
+  <!-- Scripts -->
+  <script src="{{ asset('assets/js/jquery-2.1.0.min.js') }}"></script>
+  <script src="{{ asset('assets/js/popper.js') }}"></script>
+  <script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
+  <script src="{{ asset('assets/js/scrollreveal.min.js') }}"></script>
+  <script src="{{ asset('assets/js/waypoints.min.js') }}"></script>
+  <script src="{{ asset('assets/js/jquery.counterup.min.js') }}"></script>
+  <script src="{{ asset('assets/js/imgfix.min.js') }}"></script>
+  <script src="{{ asset('assets/js/mixitup.js') }}"></script>
+  <script src="{{ asset('assets/js/accordions.js') }}"></script>
+  <script src="{{ asset('assets/js/custom.js') }}"></script>
 </body>
 </html>

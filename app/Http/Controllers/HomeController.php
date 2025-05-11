@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
+use App\Models\Product;;
 class HomeController extends Controller
 {
     /**
@@ -23,6 +23,15 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+
+        $products = Product::where('approved', true)->latest()->take(6)->get();
+
+        return view('guest.home', compact('products'));
     }
+    public function home()
+{
+    $products = Product::where('is_approved', true)->latest()->take(6)->get();
+    return view('guest.home', compact('products'));
+}
+
 }

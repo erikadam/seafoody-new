@@ -21,6 +21,18 @@ class User extends Authenticatable
         'is_approved',
         'role',
     ];
+    // Sebagai penjual
+public function storeRatings()
+{
+    return $this->hasMany(StoreRating::class, 'user_id');
+}
+
+// Sebagai pembeli
+public function givenRatings()
+{
+    return $this->hasMany(StoreRating::class, 'customer_id');
+}
+
 
 }
 

@@ -17,7 +17,7 @@
 
     <div class="mb-3">
       <label for="description" class="form-label">Deskripsi</label>
-      <textarea name="description" class="form-control"></textarea>
+      <textarea name="description" class="form-control" required></textarea>
     </div>
 
     <div class="mb-3">
@@ -26,7 +26,21 @@
     </div>
 
     <div class="mb-3">
-      <label for="image" class="form-label">Gambar Produk (opsional)</label>
+      <label for="category" class="form-label">Kategori</label>
+      <select name="category" class="form-control" required>
+        <option value="">Pilih Kategori</option>
+        <option value="Bahan">Bahan</option>
+        <option value="Makanan">Makanan</option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="stock" class="form-label">Stok Tersedia</label>
+      <input type="number" name="stock" class="form-control" min="0" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="image" class="form-label">Gambar Produk</label>
       <input type="file" name="image" class="form-control">
     </div>
 

@@ -18,9 +18,9 @@
     <link rel="stylesheet" href="assets/css/style.css">
 
     </head>
-    
+
     <body>
-    
+
     <!-- ***** Preloader Start ***** -->
     <div id="js-preloader" class="js-preloader">
       <div class="preloader-inner">
@@ -33,8 +33,8 @@
       </div>
     </div>
     <!-- ***** Preloader End ***** -->
-    
-    
+
+
     <!-- ***** Header Area Start ***** -->
     <header class="header-area header-sticky">
         <div class="container">
@@ -47,11 +47,11 @@
                         <!-- ***** Menu Start ***** -->
                         <ul class="nav">
                             <li><a href="index.html">Home</a></li>
-                            <li><a href="products.html" class="active">Products</a></li>
+                            <li><a href="produk" class="active">Products</a></li>
                             <li><a href="checkout.html">Checkout</a></li>
                             <li class="dropdown">
                                 <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">About</a>
-                              
+
                                 <div class="dropdown-menu">
                                     <a class="dropdown-item" href="about.html">About Us</a>
                                     <a class="dropdown-item" href="blog.html">Blog</a>
@@ -59,8 +59,8 @@
                                     <a class="dropdown-item" href="terms.html">Terms</a>
                                 </div>
                             </li>
-                            <li><a href="contact.html">Contact</a></li> 
-                        </ul>        
+                            <li><a href="contact.html">Contact</a></li>
+                        </ul>
                         <a class='menu-trigger'>
                             <span>Menu</span>
                         </a>
@@ -220,7 +220,7 @@
             </div>
 
             <br>
-                
+
             <nav>
               <ul class="pagination pagination-lg justify-content-center">
                 <li class="page-item">
@@ -245,7 +245,7 @@
     </section>
     <!-- ***** Fleet Ends ***** -->
 
-    
+
     <!-- ***** Footer Start ***** -->
     <footer>
         <div class="container">
@@ -271,10 +271,10 @@
     <script src="assets/js/scrollreveal.min.js"></script>
     <script src="assets/js/waypoints.min.js"></script>
     <script src="assets/js/jquery.counterup.min.js"></script>
-    <script src="assets/js/imgfix.min.js"></script> 
-    <script src="assets/js/mixitup.js"></script> 
+    <script src="assets/js/imgfix.min.js"></script>
+    <script src="assets/js/mixitup.js"></script>
     <script src="assets/js/accordions.js"></script>
-    
+
     <!-- Global Init -->
     <script src="assets/js/custom.js"></script>
 

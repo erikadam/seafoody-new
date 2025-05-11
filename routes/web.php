@@ -12,7 +12,8 @@ use App\Http\Controllers\CustomerController;
 use GuzzleHttp\Promise\Create;
 use App\Http\Controllers\Customer\CreateController;
 use App\Models\Product;
-
+use App\Http\Controllers\GuestProductController;
+use App\Http\Controllers\GuestOrderController;
 /*
 |--------------------------------------------------------------------------
 | Public Routes
@@ -21,14 +22,25 @@ use App\Models\Product;
 
 // Halaman depan
 
-Route::get('/', function () {
-    return view('guest.home');
-})->name('guest.home');
+Route::get('/', [GuestProductController::class, 'index'])->name('guest.home');
+
+Route::get('/produk', [GuestProductController::class, 'product'])->name('guest.products.index');
+Route::get('/products/{id}', [GuestProductController::class, 'show'])->name('guest.products.show');
+Route::get('/cart/add/{id}', function ($id) {
+    return "Produk dengan ID $id ditambahkan ke keranjang (simulasi)";
+})->name('cart.add');
+Route::get('/checkout', [GuestOrderController::class, 'showForm'])->name('guest.checkout');
+Route::post('/checkout', [GuestOrderController::class, 'submitOrder'])->name('guest.checkout.submit');
+
+
+
+
 
 
 // Daftar produk publik
-Route::get('/products', [ProductController::class, 'index'])
-    ->name('products.index');
+// Untuk daftar produk yang approved
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -41,7 +53,7 @@ Auth::routes();
 
 // Dashboard
 Route::view('/dashboard', 'dashboard')->middleware(['auth', 'verified'])->name('dashboard');
-
+Route::get('/product/{id}', [App\Http\Controllers\ProductController::class, 'show'])->name('products.index');
 // Settings (Livewire Volt)
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -59,6 +71,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+
+
 });
 
 
@@ -86,6 +100,16 @@ Route::middleware(['auth', CheckRole::class . ':customer'])->group(function () {
     Route::get('customer/products/create', [ProductController::class, 'create'])->name('customer.products.create');
     Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
     Route::get('customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.my-product');
+    Route::delete('/customer/products/{id}', [ProductController::class, 'destroy'])->name('customer.products.destroy');
+    Route::patch('/customer/products/{id}/toggle', [ProductController::class, 'toggleStatus'])->name('customer.products.toggle');
+    Route::get('/customer/products/{id}/edit', [ProductController::class, 'edit'])->name('customer.products.edit');
+    Route::put('/customer/products/{id}', [ProductController::class, 'update'])->name('customer.products.update');
+    Route::patch('/customer/products/{id}/toggle', [ProductController::class, 'toggleStatus'])
+    ->name('customer.products.toggle');
+    Route::get('/profile/edit', [CustomerController::class, 'editProfile'])->name('customer.profile.edit');
+    Route::put('/profile/update', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
+    Route::get('/customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.index');
+
+
 
 });
-
