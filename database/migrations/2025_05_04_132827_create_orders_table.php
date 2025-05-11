@@ -9,6 +9,7 @@ return new class extends Migration {
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->string('buyer_name');
             $table->string('buyer_phone');
@@ -22,9 +23,11 @@ return new class extends Migration {
                 'in_process_by_customer',
                 'shipped_by_customer',
                 'received_by_buyer',
-                'completed'
+                'completed',
+                'cancelled_by_buyer',
             ])->default('waiting_admin_confirmation');
             $table->timestamps();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

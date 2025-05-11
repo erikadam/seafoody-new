@@ -1,31 +1,66 @@
+
 @extends('layouts.customer')
 
 @section('content')
-<h1 class="mb-4">Dashboard Customer</h1>
-<a href="{{ route('customer.profile.edit') }}" class="btn btn-sm btn-primary">Edit Profil Toko</a>
+<div class="container mt-4">
+  <h3>Dashboard Penjual</h3>
 
-<div class="card mb-4">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <span>Profil Toko Anda</span>
-    <a href="{{ route('customer.profile.edit') }}" class="btn btn-sm btn-primary">Edit Profil</a>
-  </div>
-
-  <div class="card-body d-flex align-items-center">
-    @if(Auth::user()->store_logo)
-    <img src="{{ asset('storage/' . Auth::user()->store_logo) }}" alt="Logo Toko" style="max-height: 100px;">
-@else
-    <p>Belum ada logo toko.</p>
-@endif
-
-    <div class="ml-4">
-      <h4>{{ Auth::user()->name }}</h4>
-      <p><strong>Alamat:</strong> {{ Auth::user()->store_address ?? '-' }}</p>
+  <!-- Profil Toko -->
+  <div class="card mb-4">
+    <div class="card-header">Profil Toko</div>
+    <div class="card-body">
+      <p><strong>Nama:</strong> {{ Auth::user()->name }}</p>
       <p><strong>Deskripsi:</strong> {{ Auth::user()->store_description ?? '-' }}</p>
+      <p><strong>Alamat:</strong> {{ Auth::user()->store_address ?? '-' }}</p>
+      <p><strong>No. HP:</strong> {{ Auth::user()->phone ?? '-' }}</p>
+      <a href="{{ route('customer.profile.edit') }}" class="btn btn-sm btn-outline-primary">Edit Profil</a>
     </div>
   </div>
-</div>
 
-<div class="alert alert-info">
-  Selamat datang kembali, {{ Auth::user()->name }}!
+  <!-- Pesanan Masuk -->
+  <div class="card">
+    <div class="card-header">Pesanan Masuk</div>
+    <div class="card-body p-0">
+      @if($orders->count())
+        <table class="table table-bordered mb-0">
+          <thead>
+            <tr>
+              <th>Produk</th>
+              <th>Pembeli</th>
+              <th>HP</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($orders as $order)
+              <tr>
+                <td>{{ $order->product->name ?? 'Produk Tidak Tersedia' }}</td>
+                <td>{{ $order->buyer_name }}</td>
+                <td>{{ $order->buyer_phone }}</td>
+                <td><span class="badge bg-secondary">{{ $order->status }}</span></td>
+                <td>
+                  @if($order->status === 'in_process_by_customer')
+                    <form action="{{ route('customer.order.prepare', $order->id) }}" method="POST">
+                      @csrf @method('PATCH')
+                      <button class="btn btn-sm btn-warning">Siapkan</button>
+                    </form>
+                  @elseif($order->status === 'shipped_by_customer')
+                    <span class="badge bg-success">Dikirim</span>
+                  @elseif($order->status === 'completed')
+                    <span class="badge bg-info">Selesai</span>
+                  @else
+                    <span class="badge bg-light">{{ ucfirst(str_replace('_', ' ', $order->status)) }}</span>
+                  @endif
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      @else
+        <div class="p-3">Belum ada pesanan masuk.</div>
+      @endif
+    </div>
+  </div>
 </div>
 @endsection

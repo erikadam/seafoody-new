@@ -54,7 +54,8 @@
 
                   <!-- Tombol Add to Cart -->
                   <div class="text-center mt-2">
-                    <a href="{{ route('cart.add', $product->id) }}" class="btn btn-sm btn-primary">
+                    <a href="{{ route('cart.add', $product->id) }}"
+                        class="btn btn-sm btn-primary">
                       Tambahkan ke Keranjang
                     </a>
                   </div>

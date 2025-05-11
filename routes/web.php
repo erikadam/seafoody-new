@@ -14,13 +14,14 @@ use App\Http\Controllers\Customer\CreateController;
 use App\Models\Product;
 use App\Http\Controllers\GuestProductController;
 use App\Http\Controllers\GuestOrderController;
+use App\Http\Controllers\CartController;
+use Illuminate\Support\Facades\Log;
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Public Guest Routes
 |--------------------------------------------------------------------------
 */
 
-// Halaman depan
 
 Route::get('/', [GuestProductController::class, 'index'])->name('guest.home');
 
@@ -31,6 +32,27 @@ Route::get('/cart/add/{id}', function ($id) {
 })->name('cart.add');
 Route::get('/checkout', [GuestOrderController::class, 'showForm'])->name('guest.checkout');
 Route::post('/checkout', [GuestOrderController::class, 'submitOrder'])->name('guest.checkout.submit');
+//cart
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::get('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
+Route::get('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+//order
+Route::get('/order/{token}/nota', [GuestOrderController::class, 'downloadPdf'])->name('guest.order.pdf');
+Route::get('/order-status/{token}', [GuestOrderController::class, 'trackOrder'])->name('guest.order.track');
+Route::get('/order/{token}/nota-final', [GuestOrderController::class, 'downloadFinalPdf'])->name('guest.order.pdf.final');
+Route::patch('/order/{token}/cancel', [GuestOrderController::class, 'cancelOrder'])->name('guest.order.cancel');
+Route::patch('/order/{token}/complete', [GuestOrderController::class, 'completeOrder'])->name('guest.order.complete');
+Route::post('/checkout', [GuestOrderController::class, 'submitOrder'])->name('guest.checkout.submit');
+Route::patch('/order/{token}/confirm', [GuestOrderController::class, 'confirmReceived'])->name('guest.order.confirm');
+Route::post('/test-submit', function () {
+    Log::info('Form uji coba diterima');
+    return 'berhasil';
+});
+
+
+
 
 
 
@@ -109,6 +131,13 @@ Route::middleware(['auth', CheckRole::class . ':customer'])->group(function () {
     Route::get('/profile/edit', [CustomerController::class, 'editProfile'])->name('customer.profile.edit');
     Route::put('/profile/update', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
     Route::get('/customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.index');
+    Route::patch('/customer/orders/{id}/status', [CustomerController::class, 'updateOrderStatus'])
+    ->name('customer.orders.update-status');
+    Route::patch('/customer/order/{id}/prepare', [CustomerController::class, 'prepareOrder'])->name('customer.order.prepare');
+    Route::patch('/customer/order/{id}/complete', [CustomerController::class, 'completeOrder'])->name('customer.order.complete');
+
+
+
 
 
 

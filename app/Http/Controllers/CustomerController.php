@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 /**
@@ -12,13 +13,39 @@ use Illuminate\Support\Facades\Storage;
 class CustomerController extends Controller
 {
     //
-    public function dashboard()
-    {
-    $user = auth()->user();
-    $products = Product::where('user_id', $user->id)->latest()->get();
-
-    return view('customer.dashboard', compact('products'));
+    public function prepareOrder($id)
+{
+    $order = Order::findOrFail($id);
+    if (in_array($order->status, ['in_process_by_customer', 'accepted_by_admin', 'waiting_admin_confirmation'])) {
+        $order->update(['status' => 'shipped_by_customer']);
     }
+
+    return redirect()->back()->with('success', 'Pesanan telah dikirim.');
+}
+
+public function completeOrder($id)
+{
+    $order = Order::findOrFail($id);
+    if ($order->status === 'received_by_buyer') {
+        $order->update(['status' => 'completed']);
+    }
+
+    return redirect()->back()->with('success', 'Pesanan ditandai selesai.');
+}
+
+public function dashboard()
+{
+    $user = auth()->user();
+
+    $products = $user->products()->with('orders')->get();
+
+    $orders = \App\Models\Order::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+    return view('customer.dashboard', compact('products', 'orders'));
+}
+
     public function editProfile()
     {
         $user = Auth::user();
