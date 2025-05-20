@@ -1,114 +1,114 @@
-
 @extends('layouts.guest')
 
 @section('content')
-<div class="container mt-5 mb-5">
-    <h2 class="mb-4 text-center">Formulir Checkout</h2>
+<div class="page-heading header-text">
+  <div class="container">
+    <h1>Checkout</h1>
+  </div>
+</div>
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <strong>Oops!</strong> Ada masalah dengan input Anda.<br><br>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+<div class="container py-5">
+  <div class="row">
+    {{-- Ringkasan Produk --}}
+    <div class="col-lg-6">
+      <h4 class="mb-3">Ringkasan Pesanan</h4>
+
+      @php $grandTotal = 0; @endphp
+
+      @foreach ($groupedCart as $sellerName => $items)
+        <div class="mb-4 border rounded p-3">
+          <h6 class="mb-2">Toko: <strong>{{ $sellerName }}</strong></h6>
+          <ul class="list-unstyled">
+            @foreach ($items as $item)
+              @php
+                $subtotal = $item->product->price * $item->quantity;
+                $grandTotal += $subtotal;
+              @endphp
+              <li class="d-flex align-items-center justify-content-between border-bottom py-2">
+                <div class="d-flex align-items-center">
+                  <img src="{{ asset('uploads/product/' . $item->product->image) }}" alt="{{ $item->product->name }}"
+                    class="rounded" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
+                  <div>
+                    <div class="fw-bold">{{ $item->product->name }}</div>
+                    <small class="text-muted">Qty: {{ $item->quantity }}</small>
+                  </div>
+                </div>
+                <div class="text-end fw-semibold">Rp{{ number_format($subtotal, 0, ',', '.') }}</div>
+              </li>
+            @endforeach
+          </ul>
         </div>
-    @endif
+      @endforeach
 
-    <form action="{{ route('guest.checkout.submit') }}" method="POST" enctype="multipart/form-data">
+      <div class="text-end mt-4">
+        <h5>Total: <span class="text-primary">Rp{{ number_format($grandTotal, 0, ',', '.') }}</span></h5>
+      </div>
+    </div>
+
+    {{-- Form Pembeli --}}
+    <div class="col-lg-6">
+      <h4 class="mb-3">Informasi Pemesan</h4>
+      <form action="{{ route('guest.checkout.process') }}" method="POST" enctype="multipart/form-data">
         @csrf
-        <div class="row">
-            <div class="col-md-6">
-                <h5>Informasi Pembeli</h5>
-                <div class="form-group">
-                    <label>Nama Lengkap</label>
-                    <input type="text" name="buyer_name" class="form-control" required value="{{ old('buyer_name') }}">
-                </div>
-                <div class="form-group">
-                    <label>Nomor Telepon</label>
-                    <input type="text" name="buyer_phone" class="form-control" required value="{{ old('buyer_phone') }}">
-                </div>
-                <div class="form-group">
-                    <label>Alamat Pengiriman</label>
-                    <textarea name="buyer_address" class="form-control" required>{{ old('buyer_address') }}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Metode Pembayaran</label>
-                    <select name="payment_method" class="form-control" required>
-                        <option value="cash">Bayar di Tempat</option>
-                        <option value="transfer">Transfer Bank</option>
-                    </select>
-                </div>
-                <div class="form-group" id="transfer-proof-group" style="display: none;">
-                    <label>Bukti Transfer (jika transfer)</label>
-                    <input type="file" name="transfer_proof" class="form-control-file">
-                </div>
-            </div>
 
-            <div class="col-md-6">
-                <h5>Ringkasan Pesanan</h5>
-                @php
-                    $cart = session('cart', []);
-                    $groupedProducts = [];
-                    foreach ($products as $product) {
-                        $groupedProducts[$product->user_id][] = $product;
-                    }
-                @endphp
-
-                @foreach($groupedProducts as $sellerId => $sellerProducts)
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <strong>Toko: {{ $sellerProducts[0]->user->name ?? 'Toko #' . $sellerId }}</strong>
-                        </div>
-                        <div class="card-body p-0">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Produk</th>
-                                        <th>Jumlah</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php $subtotal = 0; @endphp
-                                    @foreach($sellerProducts as $product)
-                                        @php
-                                            $quantity = $cart[$product->id];
-                                            $sub = $product->price * $quantity;
-                                            $subtotal += $sub;
-                                        @endphp
-                                        <tr>
-                                            <td>{{ $product->name }}</td>
-                                            <td>{{ $quantity }}</td>
-                                            <td>Rp{{ number_format($sub) }}</td>
-                                        </tr>
-                                    @endforeach
-                                    <tr>
-                                        <td colspan="2" class="text-right"><strong>Subtotal</strong></td>
-                                        <td><strong>Rp{{ number_format($subtotal) }}</strong></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
+        <div class="form-group mb-3">
+          <label>Nama Lengkap</label>
+          <input type="text" name="buyer_name" class="form-control" required>
         </div>
 
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-success">Kirim Pesanan</button>
+        <div class="form-group mb-3">
+          <label>Nomor WhatsApp</label>
+          <input type="text" name="buyer_phone" class="form-control" required>
         </div>
 
-    </form>
+        <div class="form-group mb-3">
+          <label>Alamat Lengkap</label>
+          <textarea name="buyer_address" rows="3" class="form-control" placeholder="RT/RW, Kelurahan, Kecamatan, Kabupaten" required></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>Metode Pembayaran</label><br>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="payment_method" value="cash" checked>
+            <label class="form-check-label">COD</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="payment_method" value="transfer">
+            <label class="form-check-label">Transfer Bank</label>
+          </div>
+        </div>
+
+        <div id="transfer-proof-section" class="form-group mb-3 d-none">
+          <div class="alert alert-warning small">
+            💳 Silakan transfer ke <strong>A.n Rosa - 9999999 (Bank Mandiri)</strong>, lalu upload bukti transfer di bawah ini.
+          </div>
+          <label>Upload Bukti Transfer</label>
+          <input type="file" name="transfer_proof" class="form-control">
+        </div>
+
+        <div class="text-end mt-4">
+          <button type="submitOrder" class="btn btn-primary px-4">Proses Checkout</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <script>
-    const paymentSelect = document.querySelector('[name="payment_method"]');
-    const transferGroup = document.getElementById('transfer-proof-group');
+  document.addEventListener('DOMContentLoaded', function () {
+    const radios = document.querySelectorAll('input[name="payment_method"]');
+    const proofSection = document.getElementById('transfer-proof-section');
 
-    paymentSelect.addEventListener('change', function () {
-        transferGroup.style.display = this.value === 'transfer' ? 'block' : 'none';
-    });
+    function toggleProof() {
+      if (document.querySelector('input[name="payment_method"]:checked').value === 'transfer') {
+        proofSection.classList.remove('d-none');
+      } else {
+        proofSection.classList.add('d-none');
+      }
+    }
+
+    radios.forEach(r => r.addEventListener('change', toggleProof));
+    toggleProof(); // on page load
+  });
 </script>
 @endsection

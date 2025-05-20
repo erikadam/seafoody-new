@@ -1,38 +1,19 @@
-@extends('layouts.app')
+@extends('layouts.customer')
 
 @section('content')
-<div class="container">
-    <h4>Profil Penjual</h4>
+<div class="container py-4">
+    {{-- [GPT] Informasi Profil --}}
+    <h2 class="h4 mb-4 text-primary">Profil Toko</h2>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        <div class="mb-3">
-            <label>Nama Toko</label>
-            <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p><strong>Nama Toko:</strong> {{ Auth::user()->store_name ?? Auth::user()->name }}</p>
+            <p><strong>Email:</strong> {{ Auth::user()->email }}</p>
+            <p><strong>Deskripsi:</strong> {{ Auth::user()->store_description ?? '-' }}</p>
+            <p><strong>Alamat:</strong> {{ Auth::user()->store_address ?? '-' }}</p>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label>Logo Toko</label><br>
-            @if($user->store_logo)
-                <img src="{{ asset('storage/' . $user->store_logo) }}" width="120" class="mb-2">
-            @endif
-            <input type="file" name="store_logo" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label>Alamat Toko</label>
-            <input type="text" name="store_address" class="form-control" value="{{ old('store_address', $user->store_address) }}">
-        </div>
-
-        <div class="mb-3">
-            <label>Deskripsi Toko</label>
-            <textarea name="store_description" class="form-control" rows="4">{{ old('store_description', $user->store_description) }}</textarea>
-        </div>
-
-        <button class="btn btn-primary">Simpan</button>
-    </form>
+    <a href="{{ url('customer/profile/edit') }}" class="btn btn-outline-primary mt-3">Edit Profil</a>
 </div>
 @endsection

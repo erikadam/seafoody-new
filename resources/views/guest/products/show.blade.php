@@ -1,62 +1,39 @@
 @extends('layouts.guest')
 
-@section('title', 'Detail Produk')
-
 @section('content')
-
-<!-- Banner -->
-<section class="section section-bg" style="padding-top: 120px; background-image: url('{{ asset('uploads/product/' . $product->image) }}'); background-size: cover;">
-
-  <div class="container">
-    <div class="row justify-content-center text-center">
-      <div class="col-lg-10">
-        <div class="cta-content py-5">
-          <h2>
-            <del>Rp{{ number_format($product->price + 10000) }}</del>
-            <em class="text-danger">Rp{{ number_format($product->price) }}</em>
-          </h2>
-          <p class="text-white">{{ $product->name }}</p>
+<div class="container py-5 mt-5">
+    <div class="row align-items-center">
+        <div class="col-md-6 mb-5">
+            @if($product->image)
+                <img src="{{ asset('uploads/product/' . $product->image) }}" class="img-fluid rounded" alt="{{ $product->name }}">
+            @else
+                <div class="bg-light text-center p-5">Tidak ada gambar</div>
+            @endif
         </div>
-      </div>
-    </div>
-  </div>
-</section>
+        <div class="col-md-6">
+            <h2 class="mb-3">{{ $product->name }}</h2>
+            @if($product->seller->is_suspended)
+            <div class="alert alert-warning mt-2">
+                  <strong>⚠️ Akun ini dinonaktifkan. Pesanan tidak dapat diproses</strong>
+             </div>
+            @endif
+            <p class="text-muted mb-2">Harga: <strong>Rp{{ number_format($product->price, 0, ',', '.') }}</strong></p>
+            <p class="mb-2">{{ $product->description }}</p>
+            <p class="mb-3">Stok: <span class="badge bg-success text-white">{{ $product->stock }}</span></p>
+            @if($product->seller)
+                <p class="mb-3">Penjual: <strong>{{ $product->seller->name ?? 'Tidak diketahui' }}</strong></p>
+            @endif
 
-<!-- Detail Produk -->
-<section class="section my-5">
-  <div class="container">
-    <div class="row">
-      <!-- Gambar Produk -->
-      <div class="col-md-6 mb-4">
-        <div class="card border-0 shadow-sm">
-          <img class="card-img-top img-fluid" src="{{ asset('uploads/product/' . $product->image) }}" alt="{{ $product->name }}">
+            <form method="POST" action="{{ route('guest.cart.add') }}">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+                <div class="form-group mb-3">
+                    <label for="quantity">Jumlah</label>
+                    <input type="number" name="quantity" id="quantity" value="1" min="1" max="{{ $product->stock }}" class="form-control w-50">
+                </div>
+                <button type="submit" class="btn btn-danger">Tambah ke Keranjang</button>
+            </form>
         </div>
-      </div>
-
-      <!-- Deskripsi Produk & Aksi -->
-      <div class="col-md-6">
-        <h4>{{ $product->name }}</h4>
-        <p class="text-muted">{{ $product->description }}</p>
-        <h5 class="mt-4 text-success">Rp{{ number_format($product->price) }}</h5>
-
-        <form action="{{ route('cart.add', $product->id) }}" method="GET" class="mt-3">
-          <div class="form-group">
-            <label for="qty">Jumlah</label>
-            <input type="number" name="qty" id="qty" class="form-control" min="1" value="1">
-          </div>
-          <button type="submit" class="btn btn-danger btn-block mt-3">
-            🛒 Tambahkan ke Keranjang
-          </button>
-        </form>
-        <div class="mt-4">
-            <h6 class="text-muted">Deskripsi Produk</h6>
-            <p class="text-dark" style="line-height: 1.8;">
-              {{ $product->description }}
-            </p>
-          </div>
-      </div>
     </div>
-  </div>
-</section>
-
+</div>
 @endsection

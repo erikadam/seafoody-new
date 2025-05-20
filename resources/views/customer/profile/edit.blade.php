@@ -1,32 +1,29 @@
 @extends('layouts.customer')
 
 @section('content')
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            @if (session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-            @endif
+<div class="container py-4">
+    {{-- [GPT] Form edit profil --}}
+    <h2 class="h4 mb-4 text-primary">Edit Profil Toko</h2>
 
-            <div class="card">
-                <div class="card-header">Edit Profil Toko</div>
-                <div class="card-body">
-                    <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        @method('PUT')
-
-                        <input type="text" name="name" value="{{ old('name', $user->name) }}">
-                        <input type="text" name="store_address" value="{{ old('store_address', $user->store_address) }}">
-                        <textarea name="store_description">{{ old('store_description', $user->store_description) }}</textarea>
-                        <input type="file" name="store_logo">
-
-                        <button type="submit">Simpan</button>
-                    </form>
-                </div>
-            </div>
+    <form action="{{ url('customer/profile/update') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="mb-3">
+            <label for="store_name" class="form-label">Nama Toko</label>
+            <input type="text" name="store_name" class="form-control" value="{{ Auth::user()->store_name }}">
         </div>
-    </div>
+        <div class="mb-3">
+            <label for="store_description" class="form-label">Deskripsi Toko</label>
+            <textarea name="store_description" class="form-control">{{ Auth::user()->store_description }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="store_address" class="form-label">Alamat Toko</label>
+            <textarea name="store_address" class="form-control">{{ Auth::user()->store_address }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label for="store_logo" class="form-label">Logo Toko</label>
+            <input type="file" name="store_logo" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-warning">Simpan Perubahan</button>
+    </form>
 </div>
 @endsection

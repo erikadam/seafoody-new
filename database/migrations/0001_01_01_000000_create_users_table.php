@@ -18,6 +18,14 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            $table->string('role')->default('user');
+            $table->boolean('requested_seller')->default(false);
+            $table->boolean('is_approved')->default(false);
+            $table->string('status')->default('active');
+            $table->string('avatar')->nullable();
+            $table->string('store_logo')->nullable();
+            $table->text('store_description')->nullable();
+            $table->string('store_address')->nullable();
             $table->timestamps();
         });
 

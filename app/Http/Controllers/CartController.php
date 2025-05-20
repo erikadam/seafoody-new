@@ -7,63 +7,70 @@ use App\Models\Product;
 
 class CartController extends Controller
 {
-    // Tampilkan isi keranjang
     public function index()
     {
         $cart = session()->get('cart', []);
-        $products = Product::whereIn('id', array_keys($cart))->get();
 
-        return view('guest.cart', compact('products', 'cart'));
+        // Ubah isi session cart menjadi koleksi berisi objek produk dan quantity
+        $cartItems = collect($cart)->map(function ($item, $productId) {
+            $product = Product::with('seller')->find($productId);
+
+            return (object) [
+                'product' => $product,
+                'quantity' => $item['quantity'],
+            ];
+        });
+
+        // Group berdasarkan nama toko (seller)
+        $groupedCart = $cartItems->groupBy(function ($item) {
+            return $item->product->seller->name ?? 'Toko Tidak Dikenal';
+        });
+
+        return view('guest.cart', compact('cartItems', 'groupedCart'));
     }
 
-    // Tambah produk ke keranjang
-    public function add($id)
+    public function add(Request $request)
     {
-        $product = Product::findOrFail($id);
+        $productId = $request->product_id;
+        $quantity = $request->quantity;
 
         $cart = session()->get('cart', []);
-
-        if (isset($cart[$id])) {
-            $cart[$id]++;
+        if (isset($cart[$productId])) {
+            $cart[$productId]['quantity'] += $quantity;
         } else {
-            $cart[$id] = 1;
+            $cart[$productId] = [
+                'quantity' => $quantity
+            ];
         }
 
         session()->put('cart', $cart);
-
-        return redirect()->route('cart.index')->with('success', 'Produk ditambahkan ke keranjang.');
+        return back()->with('success', 'Produk ditambahkan ke keranjang');
     }
 
-    // Hapus satu item dari keranjang
-    public function remove($id)
+    public function update(Request $request)
     {
-        $cart = session()->get('cart', []);
+        $productId = $request->product_id;
+        $quantity = $request->quantity;
 
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
+        $cart = session()->get('cart', []);
+        if (isset($cart[$productId])) {
+            $cart[$productId]['quantity'] = $quantity;
             session()->put('cart', $cart);
         }
 
-        return redirect()->route('cart.index')->with('success', 'Produk dihapus dari keranjang.');
+        return back()->with('success', 'Jumlah produk diperbarui');
     }
 
-    // Kosongkan keranjang
-    public function clear()
+    public function remove(Request $request)
     {
-        session()->forget('cart');
+        $productId = $request->product_id;
 
-        return redirect()->route('cart.index')->with('success', 'Keranjang dikosongkan.');
-    }
-    public function update(Request $request)
-{
-    $cart = session()->get('cart', []);
-    foreach ($request->quantities as $productId => $qty) {
-        if ($qty > 0) {
-            $cart[$productId] = $qty;
+        $cart = session()->get('cart', []);
+        if (isset($cart[$productId])) {
+            unset($cart[$productId]);
+            session()->put('cart', $cart);
         }
-    }
-    session()->put('cart', $cart);
-    return back()->with('success', 'Jumlah produk berhasil diperbarui.');
-}
 
+        return back()->with('success', 'Produk dihapus dari keranjang');
+    }
 }

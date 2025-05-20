@@ -13,8 +13,10 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        // Guest bisa akses home (method index)
+        $this->middleware('auth')->except('index');
     }
+
 
     /**
      * Show the application dashboard.
@@ -22,12 +24,11 @@ class HomeController extends Controller
      * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
-    {
+{
+    $products = Product::where('status', 'approved')->latest()->take(6)->get();
+    return view('guest.home', compact('products'));
+}
 
-        $products = Product::where('approved', true)->latest()->take(6)->get();
-
-        return view('guest.home', compact('products'));
-    }
     public function home()
 {
     $products = Product::where('is_approved', true)->latest()->take(6)->get();

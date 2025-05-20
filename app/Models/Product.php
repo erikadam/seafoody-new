@@ -34,13 +34,13 @@ class Product extends Model
 
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+
     public function orders()
 {
     return $this->hasMany(\App\Models\Order::class, 'product_id');
 }
-
+public function seller()
+{
+    return $this->belongsTo(User::class, 'user_id');
+}
 }

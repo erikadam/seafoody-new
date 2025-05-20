@@ -1,144 +1,130 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Livewire\Volt\Volt;
-use App\Http\Middleware\CheckRole;
-use App\Http\Controllers\Admin\UserApprovalController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CreateController as ControllersCreateController;
-use App\Http\Controllers\CustomerController;
-use GuzzleHttp\Promise\Create;
-use App\Http\Controllers\Customer\CreateController;
-use App\Models\Product;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\GuestProductController;
-use App\Http\Controllers\GuestOrderController;
 use App\Http\Controllers\CartController;
-use Illuminate\Support\Facades\Log;
-/*
-|--------------------------------------------------------------------------
-| Public Guest Routes
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\GuestOrderController;
+use App\Http\Controllers\Admin\UserApprovalController;
+use App\Http\Controllers\Admin\AdminTransferController;
+use App\Http\Controllers\Admin\ProductApprovalController;
+use App\Http\Controllers\Customer\CustomerController;
+use App\Http\Controllers\Customer\CustomerOrderController;
+use App\Http\Controllers\Customer\CustomerProfileController;
+use App\Http\Controllers\Customer\ProductController;
+use App\Http\Middleware\CheckRole;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\ReportController;
 
+use App\Http\Controllers\ProfileController;
 
-Route::get('/', [GuestProductController::class, 'index'])->name('guest.home');
+// Home (guest)
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/dashboard', function () {
+    // This page will be accessible only by verified users
+})->middleware('verified');
+Auth::routes(['verify' => true]);
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+// Guest Product Routes
+Route::get('/products', [GuestProductController::class, 'index'])->name('guest.products.index');
 
-Route::get('/produk', [GuestProductController::class, 'product'])->name('guest.products.index');
-Route::get('/products/{id}', [GuestProductController::class, 'show'])->name('guest.products.show');
-Route::get('/cart/add/{id}', function ($id) {
-    return "Produk dengan ID $id ditambahkan ke keranjang (simulasi)";
-})->name('cart.add');
-Route::get('/checkout', [GuestOrderController::class, 'showForm'])->name('guest.checkout');
-Route::post('/checkout', [GuestOrderController::class, 'submitOrder'])->name('guest.checkout.submit');
-//cart
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::get('/cart/add/{id}', [CartController::class, 'add'])->name('cart.add');
-Route::get('/cart/remove/{id}', [CartController::class, 'remove'])->name('cart.remove');
-Route::get('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
-//order
-Route::get('/order/{token}/nota', [GuestOrderController::class, 'downloadPdf'])->name('guest.order.pdf');
-Route::get('/order-status/{token}', [GuestOrderController::class, 'trackOrder'])->name('guest.order.track');
-Route::get('/order/{token}/nota-final', [GuestOrderController::class, 'downloadFinalPdf'])->name('guest.order.pdf.final');
-Route::patch('/order/{token}/cancel', [GuestOrderController::class, 'cancelOrder'])->name('guest.order.cancel');
-Route::patch('/order/{token}/complete', [GuestOrderController::class, 'completeOrder'])->name('guest.order.complete');
-Route::post('/checkout', [GuestOrderController::class, 'submitOrder'])->name('guest.checkout.submit');
-Route::patch('/order/{token}/confirm', [GuestOrderController::class, 'confirmReceived'])->name('guest.order.confirm');
-Route::post('/test-submit', function () {
-    Log::info('Form uji coba diterima');
-    return 'berhasil';
+Route::get('/products/{product}', [GuestProductController::class, 'show'])->name('guest.products.show');
+
+// Guest Cart
+Route::prefix('cart')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('guest.cart.index');
+    Route::post('/add', [CartController::class, 'add'])->name('guest.cart.add');
+    Route::post('/remove', [CartController::class, 'remove'])->name('guest.cart.remove');
 });
-
-
-
-
-
-
-
-
-
-// Daftar produk publik
-// Untuk daftar produk yang approved
-
-
-
-/*
-|--------------------------------------------------------------------------
-| Authentication & Dashboard
-|--------------------------------------------------------------------------
-*/
-
-// Route auth dari Laravel UI
-Auth::routes();
-
-// Dashboard
-Route::view('/dashboard', 'dashboard')->middleware(['auth', 'verified'])->name('dashboard');
-Route::get('/product/{id}', [App\Http\Controllers\ProductController::class, 'show'])->name('products.index');
-// Settings (Livewire Volt)
 Route::middleware(['auth'])->group(function () {
-    Route::redirect('settings', 'settings/profile');
-    Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
-    Volt::route('settings/password', 'settings.password')->name('settings.password');
-    Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/request-seller', [ProfileController::class, 'requestSeller'])->name('profile.requestSeller');
+});
+// Guest Checkout
+Route::get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
+Route::get('/order-status/{token}', [GuestOrderController::class, 'trackOrder'])->name('guest.track.order');
+Route::post('/order/confirm/{id}', [GuestOrderController::class, 'confirmReceived'])->name('guest.order.confirm');
+Route::post('/cart/update', [CartController::class, 'update'])->name('guest.cart.update');
+Route::post('/cart/remove', [CartController::class, 'remove'])->name('guest.cart.remove');
+Route::get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
+
+
+
+// Guest Track Order
+use App\Http\Controllers\TrackOrderController;
+
+Route::get('/track-order', [TrackOrderController::class, 'showForm'])->name('guest.track.form');
+Route::get('/track-order/result', [TrackOrderController::class, 'searchByToken'])->name('guest.track.result');
+Route::get('/nota-pdf/{token}', [TrackOrderController::class, 'downloadPdf'])->name('guest.download.pdf');
+
+
+// Auth routes
+
+// Admin Routes
+Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group(function () {
+   Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/users', [UserApprovalController::class, 'index'])->name('admin.users.index');
+    Route::post('/users/{id}/approve', [UserApprovalController::class, 'approve'])->name('admin.users.approve');
+    Route::post('/transfers/{item}/approve', [AdminTransferController::class, 'approve']);
+    Route::get('/transfers', [AdminTransferController::class, 'index'])->name('admin.transfers.index');
+    Route::post('/transfers/{id}/approve', [AdminTransferController::class, 'approve'])->name('admin.transfers.approve');
+    Route::post('/transfers/{id}/reject', [AdminTransferController::class, 'reject'])->name('admin.transfers.reject');
+    Route::get('/products/pending', [ProductApprovalController::class, 'pending'])->name('admin.products.pending');
+    Route::post('/products/{product}/approve', [ProductApprovalController::class, 'approve'])->name('admin.products.approve');
+    Route::post('/products/{product}/reject', [ProductApprovalController::class, 'reject'])->name('admin.products.reject');
+    Route::post('/users/suspend', [App\Http\Controllers\Admin\UserController::class, 'suspend'])->name('admin.users.suspend');
+    Route::post('/users/unsuspend', [App\Http\Controllers\Admin\UserController::class, 'unsuspend'])->name('admin.users.unsuspend');
+    Route::post('/users/delete', [App\Http\Controllers\Admin\UserController::class, 'delete'])->name('admin.users.delete');
+    Route::get('/users/management', [UserController::class, 'management']);
+
+});
+Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group(function () {
+    Route::get('/reports/pdf', [ReportController::class, 'exportPdf'])->name('admin.reports.pdf');
+    Route::get('/reports/excel', [ReportController::class, 'exportExcel'])->name('admin.reports.excel');
 });
 
-/*
-|--------------------------------------------------------------------------
-| customer Routes (login wajib)
-|--------------------------------------------------------------------------
-*/
 
-Route::middleware('auth')->group(function () {
+
+// Customer Routes
+Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])->group(function () {
+    Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('customer.profile.edit');
+    Route::post('/profile', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
+
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/my-product', [ProductController::class, 'myProduct'])->name('products.my-product');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit'); // [GPT] Route edit produk
+    Route::get('/products/show/{id}', [ProductController::class, 'show'])->name('products.show'); // [GPT] Route lihat produk
 
-
+    Route::get('/orders', [CustomerOrderController::class, 'index'])->name('customer.orders.index');
+    Route::post('/orders/{id}/status', [CustomerOrderController::class, 'updateStatus'])->name('customer.orders.updateStatus');
 });
 
+Route::post('/email/verification-notification', function (Request $request) {
+    $request->user()->sendEmailVerificationNotification();
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes (login + role admin)
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth', CheckRole::class . ':admin'])->group(function () {
-    // Approval User
-    Route::get('/admin/users', [UserApprovalController::class, 'index'])->name('admin.users.index');
-    Route::post('/admin/users/{user}/approve', [UserApprovalController::class, 'approve'])->name('admin.users.approve');
+    return back()->with('status', 'verification-link-sent');
+})->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
 
-    // Approval Produk
-    Route::get('/admin/products/pending', [ProductController::class, 'pending'])->name('admin.products.pending');
-    Route::post('/admin/products/{product}/approve', [ProductController::class, 'approve'])->name('admin.products.approve');
-    Route::post('/admin/products/{product}/reject', [ProductController::class, 'reject'])->name('admin.products.reject');
-    Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-});
-Route::middleware(['auth', CheckRole::class . ':customer'])->group(function () {
-    Route::get('/customer/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
-    Route::get('/auth/pending', [CustomerController::class, 'pending'])->name('auth.pending');
-    Route::get('customer/products/create', [ProductController::class, 'create'])->name('customer.products.create');
-    Route::post('/products/store', [ProductController::class, 'store'])->name('products.store');
-    Route::get('customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.my-product');
-    Route::delete('/customer/products/{id}', [ProductController::class, 'destroy'])->name('customer.products.destroy');
-    Route::patch('/customer/products/{id}/toggle', [ProductController::class, 'toggleStatus'])->name('customer.products.toggle');
-    Route::get('/customer/products/{id}/edit', [ProductController::class, 'edit'])->name('customer.products.edit');
-    Route::put('/customer/products/{id}', [ProductController::class, 'update'])->name('customer.products.update');
-    Route::patch('/customer/products/{id}/toggle', [ProductController::class, 'toggleStatus'])
-    ->name('customer.products.toggle');
-    Route::get('/profile/edit', [CustomerController::class, 'editProfile'])->name('customer.profile.edit');
-    Route::put('/profile/update', [CustomerController::class, 'updateProfile'])->name('customer.profile.update');
-    Route::get('/customer/products/my-product', [ProductController::class, 'myProduct'])->name('customer.products.index');
-    Route::patch('/customer/orders/{id}/status', [CustomerController::class, 'updateOrderStatus'])
-    ->name('customer.orders.update-status');
-    Route::patch('/customer/order/{id}/prepare', [CustomerController::class, 'prepareOrder'])->name('customer.order.prepare');
-    Route::patch('/customer/order/{id}/complete', [CustomerController::class, 'completeOrder'])->name('customer.order.complete');
+// [GPT] Route untuk ajukan menjadi seller
+Route::post('/profile/request-seller', [\App\Http\Controllers\ProfileController::class, 'requestSeller'])->name('profile.request_seller')->middleware('auth');
 
 
+// [GPT] Route untuk kirim ulang verifikasi email
+Route::post('/profile/send-verification', [\App\Http\Controllers\ProfileController::class, 'sendVerification'])->middleware('auth')->name('profile.send_verification');
 
-
-
-
-});
+// [GPT] Route untuk update password dari halaman profil
+Route::put('/profile/update-password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('auth')->name('profile.update_password');

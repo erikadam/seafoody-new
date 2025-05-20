@@ -12,7 +12,12 @@ class RedirectIfAuthenticated
     {
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                return redirect('/home');
+                if (Auth::user()->role === 'admin') {
+        return redirect('/admin/dashboard');
+    } elseif (Auth::user()->role === 'customer') {
+        return redirect('/customer/dashboard');
+    }
+    return redirect('/');
             }
         }
 

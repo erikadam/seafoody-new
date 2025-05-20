@@ -11,30 +11,19 @@ class LoginController extends Controller
 {
     use AuthenticatesUsers;
 
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
+    /**
+     * Redirect users after login based on their role.
+     */
     protected function authenticated(Request $request, $user)
     {
-        // Cek apakah user sudah disetujui
-        if (!$user->is_approved) {
-            Auth::logout();
-
-            // Kembalikan ke login dengan error
-            return redirect()->route('login')->withErrors([
-                'email' => 'Akun Anda belum disetujui oleh admin.',
-            ]);
-        }
-
-        // Redirect berdasarkan role
+        // [GPT] Hanya admin redirect ke dashboard admin
         if ($user->role === 'admin') {
-            return redirect()->route('admin.dashboard');
+            return redirect('/admin/dashboard');
         }
 
-        return redirect()->route('customer.dashboard');
-    }
-
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
+        // Semua user dan customer ke home
+        return redirect('/');
     }
 }

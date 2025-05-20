@@ -1,87 +1,46 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Log;
-
 
 class GuestOrderController extends Controller
 {
-    public function completeOrder($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        if ($order->status === 'received_by_buyer') {
-            $order->update(['status' => 'completed']);
-        }
-        return redirect()->route('guest.order.track', $token)->with('success', 'Pesanan telah selesai.');
-    }
-
-    public function cancelOrder($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        if (in_array($order->status, ['in_process_by_customer', 'waiting_admin_confirmation'])) {
-            $order->update(['status' => 'cancelled_by_buyer']);
-        }
-        return redirect()->route('guest.order.track', $token)->with('success', 'Pesanan telah dibatalkan.');
-    }
-
-    public function confirmReceived($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        if ($order->status === 'shipped_by_customer') {
-            $order->update(['status' => 'completed']);
-            Log::info("GUEST mengonfirmasi terima order {$order->id}");
-        }
-        return back();
-    }
-
-    public function showForm()
+    public function showCheckoutForm()
     {
         $cart = session()->get('cart', []);
-        $productIds = array_keys($cart);
-        $products = Product::whereIn('id', $productIds)->with('user')->get();
-        return view('guest.checkout', compact('products'));
-    }
 
-    public function trackOrder($token)
-    {
-        $order = Order::with('user')->where('token', $token)->firstOrFail();
-        return view('guest.track-order', compact('order'));
-    }
-
-    public function confirmReceipt($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        if ($order->status === 'shipped_by_customer') {
-            $order->update(['status' => 'received_by_buyer']);
+        if (empty($cart)) {
+            return redirect('/')->with('error', 'Keranjang Anda kosong.');
         }
-        return redirect()->route('guest.order.track', $token)->with('success', 'Pesanan dikonfirmasi diterima.');
-    }
 
-    public function downloadFinalPdf($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        $pdf = Pdf::loadView('guest.pdf_receipt', compact('order'));
-        return $pdf->download('nota-diterima-' . $order->id . '.pdf');
-    }
+        $cartItems = [];
+        foreach ($cart as $productId => $entry) {
+            $product = Product::with('seller')->find($productId);
+            if ($product) {
+                $cartItems[] = (object)[
+                    'product' => $product,
+                    'quantity' => $entry['quantity'],
+                ];
+            }
+        }
 
-    public function downloadPdf($token)
-    {
-        $order = Order::where('token', $token)->firstOrFail();
-        $pdf = Pdf::loadView('guest.pdf_receipt', compact('order'));
-        return $pdf->download('nota-pesanan-' . $order->id . '.pdf');
+        $groupedCart = collect($cartItems)->groupBy(function ($item) {
+            return $item->product->seller->name ?? 'Toko Tidak Dikenal';
+        });
+
+        return view('guest.checkout', compact('groupedCart'));
     }
 
     public function submitOrder(Request $request)
     {
-        Log::info('🔥 submitOrder terpanggil');
-
         $validator = Validator::make($request->all(), [
             'buyer_name' => 'required|string|max:255',
             'buyer_phone' => 'required|string|max:20',
@@ -107,77 +66,50 @@ class GuestOrderController extends Controller
                 $proofPath = $request->file('transfer_proof')->store('transfer_proofs', 'public');
             }
 
-            $groupedCart = [];
-            foreach ($cart as $productId => $quantity) {
-                $product = Product::find($productId);
+            $token = Str::random(40);
+            $order = Order::create([
+                'buyer_name' => $request->buyer_name,
+                'buyer_phone' => $request->buyer_phone,
+                'buyer_address' => $request->buyer_address,
+                'payment_method' => $request->payment_method,
+                'transfer_proof' => $proofPath,
+                'token' => $token,
+            ]);
 
-                if (!$product) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', "Produk ID {$productId} tidak ditemukan.");
-                }
+            foreach ($cart as $productId => $item) {
+                $quantity = $item['quantity'];
+                $product = Product::findOrFail($productId);
 
                 if ($product->stock < $quantity) {
                     DB::rollBack();
                     return redirect()->back()->with('error', "Stok produk {$product->name} tidak mencukupi.");
                 }
 
-                $groupedCart[$product->user_id][] = [
-                    'product' => $product,
+                $product->decrement('stock', $quantity);
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $product->id,
+                    'seller_id' => $product->user_id,
                     'quantity' => $quantity,
-                ];
-            }
-
-            Log::info('📦 groupedCart', $groupedCart);
-
-            $tokenList = [];
-
-            foreach ($groupedCart as $sellerId => $items) {
-                $token = Str::random(32);
-                $tokenList[] = $token;
-                $status = $request->payment_method === 'transfer'
-                    ? 'waiting_admin_confirmation'
-                    : 'in_process_by_customer';
-
-                $productNames = [];
-                $totalPrice = 0;
-
-                foreach ($items as $entry) {
-                    $product = $entry['product'];
-                    $quantity = $entry['quantity'];
-                    $productNames[] = "{$product->name} (x{$quantity})";
-                    $totalPrice += $product->price * $quantity;
-                    $product->decrement('stock', $quantity);
-                }
-
-                $data = [
-                    'buyer_name' => $request->buyer_name,
-                    'buyer_phone' => $request->buyer_phone,
-                    'buyer_address' => $request->buyer_address,
-                    'payment_method' => $request->payment_method,
-                    'transfer_proof' => $proofPath,
-                    'status' => $status,
-                    'token' => $token,
-                    'user_id' => $sellerId,
-                    'product_list' => implode(', ', $productNames),
-                    'total_price' => $totalPrice,
-                    'product_id' => $items[0]['product']->id,
-                ];
-
-                Log::info('🧾 Order data', $data);
-                Order::create($data);
-                Log::info('✅ Order berhasil dibuat');
+                    'price' => $product->price,
+                    'status' => $request->payment_method === 'transfer'
+                        ? 'waiting_admin_confirmation'
+                        : 'in_process_by_customer',
+                ]);
             }
 
             DB::commit();
             session()->forget('cart');
-            Log::info('🎉 Semua transaksi disimpan');
 
-            return redirect()->route('guest.order.track', $tokenList[0])
-                ->with('success', 'Pesanan berhasil dilakukan.');
+            $order->load('orderItems');
+            session()->put('order', $order);
 
-            } catch (\Exception $e) {
-                DB::rollBack();
-                dd('❌ ERROR:', $e->getMessage(), $e->getTraceAsString());
-            }
+            return redirect()->route('guest.track.order');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
+        }
     }
 }

@@ -26,6 +26,9 @@ return new class extends Migration {
                 'completed',
                 'cancelled_by_buyer',
             ])->default('waiting_admin_confirmation');
+            $table->text('product_list')->nullable();
+            $table->bigInteger('total_price')->default(0);
+            $table->string('token')->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });

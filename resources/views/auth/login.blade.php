@@ -1,3 +1,9 @@
+
+@if(session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
 <!DOCTYPE html>
 <html lang="en">
 <head>

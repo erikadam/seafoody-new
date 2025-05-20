@@ -11,10 +11,17 @@ class CheckRole
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, ...$roles)
     {
-        if (!$request->user() || $request->user()->role !== $role) {
-            abort(403, 'Unauthorized');
+        $user = auth()->user();
+
+        if (!$user || !in_array($user->role, $roles)) {
+            abort(403);
+        }
+
+        // [GPT] Tambahan: jika akun disuspend, tolak akses dashboard toko
+        if ($user->is_suspended && $request->is('customer/*')) {
+            return redirect('/')->with('error', 'Akun toko Anda sedang disuspend. Silakan hubungi admin.');
         }
 
         return $next($request);

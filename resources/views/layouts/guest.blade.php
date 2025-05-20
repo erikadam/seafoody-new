@@ -24,6 +24,7 @@
   <!-- Main Content -->
   <main>
     @yield('content')
+
   </main>
 
   <!-- Footer -->

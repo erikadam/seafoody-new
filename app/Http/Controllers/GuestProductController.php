@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use FontLib\Table\Type\name;
 
 class GuestProductController extends Controller
 {

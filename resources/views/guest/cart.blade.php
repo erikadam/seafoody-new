@@ -1,78 +1,81 @@
-
 @extends('layouts.guest')
 
 @section('content')
-<div class="container mt-5 pt-5">
-    <h2 class="mb-4 text-center">Keranjang Belanja</h2>
+<div class="container mt-5 py-5">
+    <h1 class="mb-4">Keranjang Belanja</h1>
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
-    @if(count($cart) > 0 && count($products) > 0)
-        <form action="{{ route('cart.update') }}" method="POST">
-            @csrf
-            @php
-                $groupedProducts = [];
-                foreach ($products as $product) {
-                    $groupedProducts[$product->user_id][] = $product;
-                }
-            @endphp
-
-            @foreach($groupedProducts as $sellerId => $sellerProducts)
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <strong>Toko: {{ $sellerProducts[0]->user->name ?? 'Toko #' . $sellerId }}</strong>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table mb-0">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>Nama Produk</th>
-                                    <th>Harga</th>
-                                    <th>Jumlah</th>
-                                    <th>Subtotal</th>
-                                    <th>Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php $subtotal = 0; @endphp
-                                @foreach($sellerProducts as $product)
-                                    @php
-                                        $quantity = $cart[$product->id];
-                                        $productSubtotal = $product->price * $quantity;
-                                        $subtotal += $productSubtotal;
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $product->name }}</td>
-                                        <td>Rp{{ number_format($product->price) }}</td>
-                                        <td>
-                                            <input type="number" name="quantities[{{ $product->id }}]" class="form-control form-control-sm" min="1" value="{{ $quantity }}">
-                                        </td>
-                                        <td>Rp{{ number_format($productSubtotal) }}</td>
-                                        <td>
-                                            <a href="{{ route('cart.remove', $product->id) }}" class="btn btn-danger btn-sm">Hapus</a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                <tr>
-                                    <td colspan="3" class="text-right"><strong>Subtotal Toko</strong></td>
-                                    <td colspan="2"><strong>Rp{{ number_format($subtotal) }}</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endforeach
-
-            <div class="text-center mt-4">
-                <a href="{{ route('cart.clear') }}" class="btn btn-warning mr-2">Kosongkan Keranjang</a>
-                <a href="{{ route('guest.checkout') }}" class="btn btn-primary mr-2">Lanjut ke Checkout</a>
-                <button type="submit" class="btn btn-success">Update Jumlah</button>
-            </div>
-        </form>
+    @if($cartItems->isEmpty())
+        <div class="alert alert-info">Keranjang belanja kosong.</div>
     @else
-        <div class="alert alert-info text-center">Keranjang belanja kosong.</div>
+        @foreach ($groupedCart as $name => $items)
+            <div class="card mb-5 border border-dark-subtle shadow-sm">
+                <div class="card-header bg-light">
+                    <strong>Toko: {{ $name }}</strong>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Produk</th>
+                                <th>Harga</th>
+                                <th>Jumlah</th>
+                                <th>Subtotal</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php $subtotal = 0; @endphp
+                            @foreach ($items as $item)
+                                @php
+                                    $product = $item->product;
+                                    $quantity = $item->quantity;
+                                    $subtotal += $product->price * $quantity;
+                                @endphp
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ asset('uploads/product/' . $product->image) }}"
+                                                 alt="{{ $product->name }}"
+                                                 class="me-2 rounded"
+                                                 style="width: 60px; height: 60px; object-fit: cover;">
+                                            <span>{{ $product->name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>Rp{{ number_format($product->price, 0, ',', '.') }}</td>
+                                    <td>
+                                        <form action="{{ route('guest.cart.update') }}" method="POST" class="d-flex">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <input type="number" name="quantity" value="{{ $quantity }}"
+                                                   min="1" max="{{ $product->stock }}"
+                                                   class="form-control form-control-sm w-50 me-2">
+                                            <button type="submit" class="btn btn-sm btn-primary">Perbarui</button>
+                                        </form>
+                                    </td>
+                                    <td>Rp{{ number_format($product->price * $quantity, 0, ',', '.') }}</td>
+                                    <td>
+                                        <form action="{{ route('guest.cart.remove') }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Total Toko:</strong></td>
+                                <td colspan="2"><strong>Rp{{ number_format($subtotal, 0, ',', '.') }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ route('guest.checkout.form') }}" class="btn btn-success">Lanjut ke Checkout</a>
+                </div>
+            </div>
+        @endforeach
     @endif
 </div>
 @endsection

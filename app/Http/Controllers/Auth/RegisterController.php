@@ -7,20 +7,12 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RegisterController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
     use RegistersUsers;
 
     /**
@@ -63,10 +55,35 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
         ]);
+
+        // Memicu event untuk pengiriman email verifikasi
+        // [GPT] Dihapus agar verifikasi email tidak dikirim otomatis setelah register
+
+        return $user;
     }
+
+    /**
+     * Override default register behavior to send email verification and redirect.
+     */
+    protected function registered(Request $request, $user)
+    {
+        $user->sendEmailVerificationNotification();
+        return redirect()->route('verification.notice')->with('success', 'Email verifikasi telah dikirim.');
+    }
+    public function register(Request $request)
+    {
+        $this->validator($request->all())->validate();
+
+        $user = $this->create($request->all());
+
+        $this->guard()->login($user);
+
+        return redirect($this->redirectPath());
+    }
+
 }
