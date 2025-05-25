@@ -24,19 +24,26 @@
                 </thead>
                 <tbody>
                     @foreach($users as $user)
-                        <tr>
-                            <td>{{ $user->name }}</td>
-                            <td>{{ $user->email }}</td>
-                            <td>
-                                <span class="badge {{ $user->is_suspended ? 'bg-danger' : 'bg-success' }}">
-                                    {{ $user->is_suspended ? 'Nonaktif' : 'Aktif' }}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal({{ $user->id }})">Hapus</button>
-                            </td>
-                        </tr>
-                    @endforeach
+    <tr>
+        <td>{{ $user->name }}</td>
+        <td>{{ $user->email }}</td>
+        <td>
+            @if ($user->is_suspended)
+                <span class="badge bg-warning">Disuspend dari Customer</span> {{-- [GPT] --}}
+            @else
+                <span class="badge bg-secondary">User Baru</span> {{-- [GPT] --}}
+            @endif
+        </td>
+        <td>
+            @if ($user->is_suspended)
+                <button class="btn btn-sm btn-outline-success" onclick="showUnsuspendModal({{ $user->id }})">
+                    Aktifkan Kembali
+                </button> {{-- [GPT] --}}
+            @endif
+            <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal({{ $user->id }})">Hapus</button>
+        </td>
+    </tr>
+@endforeach
                 </tbody>
             </table>
         </div>

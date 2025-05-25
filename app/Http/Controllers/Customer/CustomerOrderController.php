@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Auth;
-
+use App\Traits\LogsOrderStatus;
 class CustomerOrderController extends Controller
-{
+{   use LogsOrderStatus;
     // Menampilkan daftar pesanan yang masuk untuk penjual yang sedang login
     public function index()
     {
@@ -53,5 +53,21 @@ class CustomerOrderController extends Controller
 
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }
+    public function approveRefundBySeller($id)
+{
+    $item = OrderItem::where('id', $id)
+        ->where('seller_id', Auth::id())
+        ->firstOrFail();
+
+    if ($item->status !== 'return_requested') {
+        return back()->with('error', 'Item ini tidak dalam permintaan refund.');
+    }
+
+    $item->status = 'return_approved';
+    $item->save();
+
+    return back()->with('success', 'Refund disetujui.');
+}
+
 }
 ?>

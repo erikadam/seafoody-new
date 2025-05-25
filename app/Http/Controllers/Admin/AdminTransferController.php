@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
+use App\Traits\LogsOrderStatus;
 class AdminTransferController extends Controller
-{
+{   use LogsOrderStatus;
     public function index()
     {
         $items = OrderItem::with(['product', 'order'])

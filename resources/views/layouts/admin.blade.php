@@ -44,6 +44,11 @@
   <aside class="sidebar">
     <h4 class="mb-4">Admin Panel</h4>
     <nav class="nav flex-column">
+        <li class="nav-item">
+  <a class="nav-link" href="{{ route('admin.refunds') }}">
+    <i class="bi bi-arrow-counterclockwise me-2"></i> Refund Pembeli
+  </a>
+</li>
       <a class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}" href="{{ url('admin/dashboard') }}">Dashboard</a>
       <a class="nav-link {{ request()->is('admin/users') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">Approval User</a>
       <li class="nav-item"><a class="nav-link" href="{{ url('admin/users/management') }}"><i class="fa fa-users me-2"></i> Manajemen User</a></li>

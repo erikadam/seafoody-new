@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Seafoody - @yield('title', 'Home')</title>
+  <title> Seafoody - @yield('title', 'Home')</title>
   <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
@@ -42,4 +42,28 @@
   <script src="{{ asset('assets/js/accordions.js') }}"></script>
   <script src="{{ asset('assets/js/custom.js') }}"></script>
 </body>
+@if(session('success'))
+  <div id="toast-alert" style="
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background-color: #38c172;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    z-index: 9999;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 14px;
+  ">
+    {{ session('success') }}
+  </div>
+
+  <script>
+    setTimeout(() => {
+      const toast = document.getElementById('toast-alert');
+      if (toast) toast.style.display = 'none';
+    }, 3000);
+  </script>
+@endif
+
 </html>

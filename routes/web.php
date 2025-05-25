@@ -20,8 +20,10 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ReportController;
-
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RefundController;
+use App\Http\Controllers\TrackOrderController;
+use App\Http\Controllers\OrderItemController;
 
 // Home (guest)
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -31,7 +33,8 @@ Route::get('/dashboard', function () {
 Auth::routes(['verify' => true]);
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 // Guest Product Routes
-Route::get('/products', [GuestProductController::class, 'index'])->name('guest.products.index');
+Route::get('/produk', [GuestProductController::class, 'filtered'])->name('guest.products.index');
+
 
 Route::get('/products/{product}', [GuestProductController::class, 'show'])->name('guest.products.show');
 
@@ -47,22 +50,32 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/request-seller', [ProfileController::class, 'requestSeller'])->name('profile.requestSeller');
 });
 // Guest Checkout
-Route::get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
+Route::middleware('auth')
+     ->post('/checkout/process', [GuestOrderController::class, 'submitOrder'])
+     ->name('guest.checkout.process');
+Route::middleware('auth')->get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
 Route::get('/order-status/{token}', [GuestOrderController::class, 'trackOrder'])->name('guest.track.order');
 Route::post('/order/confirm/{id}', [GuestOrderController::class, 'confirmReceived'])->name('guest.order.confirm');
 Route::post('/cart/update', [CartController::class, 'update'])->name('guest.cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('guest.cart.remove');
-Route::get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
+
 
 
 
 // Guest Track Order
-use App\Http\Controllers\TrackOrderController;
 
-Route::get('/track-order', [TrackOrderController::class, 'showForm'])->name('guest.track.form');
+
 Route::get('/track-order/result', [TrackOrderController::class, 'searchByToken'])->name('guest.track.result');
 Route::get('/nota-pdf/{token}', [TrackOrderController::class, 'downloadPdf'])->name('guest.download.pdf');
-
+Route::get('/track-order', [TrackOrderController::class, 'index'])->middleware('auth')->name('guest.track.order');
+Route::post('/order-item/{id}/cancel', [OrderItemController::class, 'cancelItem'])
+    ->middleware('auth')
+    ->name('order.item.cancel');
+Route::get('/refund/{item}/form', [RefundController::class, 'showRefundForm'])->name('refund.form');
+Route::post('/refund/{item}/submit', [RefundController::class, 'requestRefund'])->name('refund.submit');
+Route::post('/order-item/{id}/receive', [TrackOrderController::class, 'receiveOrderItem'])
+    ->name('buyer.order.receive');
+Route::get('/order-item/{id}/print', [TrackOrderController::class, 'printReceipt'])->name('buyer.order.print');
 
 // Auth routes
 
@@ -82,6 +95,14 @@ Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group
     Route::post('/users/unsuspend', [App\Http\Controllers\Admin\UserController::class, 'unsuspend'])->name('admin.users.unsuspend');
     Route::post('/users/delete', [App\Http\Controllers\Admin\UserController::class, 'delete'])->name('admin.users.delete');
     Route::get('/users/management', [UserController::class, 'management']);
+    Route::get('/admin/refunds', [RefundController::class, 'listRefunds'])->name('admin.refunds');
+    Route::post('/admin/refunds/{id}/approve', [RefundController::class, 'approveRefundBySeller'])->name('admin.refund.approve');
+    Route::get('/admin/refunds/{id}/upload', [RefundController::class, 'showUploadProofForm'])->name('admin.refund.upload.form');
+    Route::post('/admin/refunds/{id}/process', [RefundController::class, 'processRefundByAdmin'])->name('admin.refund.process');
+
+
+
+
 
 });
 Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group(function () {
@@ -110,6 +131,8 @@ Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])-
 
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('customer.orders.index');
     Route::post('/orders/{id}/status', [CustomerOrderController::class, 'updateStatus'])->name('customer.orders.updateStatus');
+    Route::post('/customer/orders/{id}/approve-refund', [CustomerOrderController::class, 'approveRefundBySeller'])
+    ->name('customer.refund.approve');
 });
 
 Route::post('/email/verification-notification', function (Request $request) {
@@ -128,3 +151,27 @@ Route::post('/profile/send-verification', [\App\Http\Controllers\ProfileControll
 
 // [GPT] Route untuk update password dari halaman profil
 Route::put('/profile/update-password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('auth')->name('profile.update_password');
+
+// ==================== [GPT] Tambahan Route Refund ====================
+
+
+// [GPT] Pembeli ajukan refund
+Route::post('/order-items/{id}/refund-request', [RefundController::class, 'requestRefund'])
+    ->middleware('auth', 'checkrole:user,customer')
+    ->name('refund.request');
+
+// [GPT] Penjual setujui refund
+Route::post('/seller/order-items/{id}/approve-refund', [RefundController::class, 'approveRefundBySeller'])
+    ->middleware('auth', 'checkrole:customer')
+    ->name('refund.approve.seller');
+
+// [GPT] Admin proses refund
+Route::post('/admin/order-items/{id}/process-refund', [RefundController::class, 'processRefundByAdmin'])
+    ->middleware('auth', 'checkrole:admin')
+    ->name('refund.process.admin');
+
+
+// ==================== [GPT] Tambahan Route Admin Transfer ====================
+
+
+

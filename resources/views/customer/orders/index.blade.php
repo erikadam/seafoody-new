@@ -36,18 +36,32 @@
                                     <input type="hidden" name="status" value="in_process_by_customer">
                                     <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">Siapkan</button>
                                 </form>
+
                             @elseif($item->status === 'in_process_by_customer')
                                 <form action="{{ route('customer.orders.updateStatus', $item->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="status" value="shipped_by_customer">
                                     <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">Kirim</button>
                                 </form>
+
                             @elseif($item->status === 'shipped_by_customer')
                                 <span class="text-gray-500 text-sm">Menunggu Konfirmasi Pembeli</span>
+
                             @elseif($item->status === 'completed')
                                 <span class="text-green-600 font-semibold text-sm">Selesai</span>
+
+                            @elseif($item->status === 'return_requested')
+                                <form method="POST" action="{{ route('customer.refund.approve', $item->id) }}">
+                                    @csrf
+                                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
+                                        onclick="return confirm('Setujui refund item ini?')">
+                                        Setujui Refund
+                                    </button>
+                                </form>
+
                             @elseif($item->status === 'waiting_admin_confirmation')
                                 <span class="text-yellow-600 text-sm">Menunggu Admin</span>
+
                             @else
                                 <span class="text-red-500 text-sm">Status: {{ $item->status }}</span>
                             @endif

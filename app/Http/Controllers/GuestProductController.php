@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Http\Request;
 use App\Models\Product;
 use FontLib\Table\Type\name;
 
@@ -26,4 +26,19 @@ class GuestProductController extends Controller
 }
 
 
+public function filtered(Request $request)
+{
+    $query = Product::where('status', 'approved');
+
+    if (in_array($request->category, ['makanan', 'bahan'])) {
+        $query->where('category', $request->category);
+    }
+
+    $products = $query->latest()->paginate(12);
+
+    return view('guest.products', [
+        'products' => $products,
+        'activeCategory' => $request->category
+    ]);
+}
 }

@@ -37,19 +37,8 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil disuspend.');
     }
 
-    public function unsuspend(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
 
-        $user = User::findOrFail($request->user_id);
-        $user->is_suspended = false;
-        $user->suspend_reason = null;
-        $user->save();
 
-        return redirect()->back()->with('success', 'Akun berhasil diaktifkan kembali.');
-    }
 
     public function delete(Request $request)
     {
@@ -65,4 +54,22 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'Akun berhasil dihapus.');
     }
+
+    // [GPT] Fungsi untuk mengaktifkan kembali user yang disuspend (berdasarkan is_approved)
+    public function unsuspend(Request $request)
+    {
+        $user = User::findOrFail($request->user_id);
+        $user->is_suspended = false;
+        $user->status = 'active';
+
+        // [GPT] Jika sebelumnya sudah di-approve menjadi penjual
+        if ($user->role === 'user' && $user->is_approved) {
+            $user->role = 'customer';
+        }
+
+        $user->save();
+
+        return redirect()->back()->with('success', 'Akun berhasil diaktifkan kembali.');
+    }
+
 }

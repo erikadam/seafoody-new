@@ -16,6 +16,14 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'requested_seller',
+        'is_approved',
+        'status',
+        'avatar',
+        'store_logo',
+        'store_description',
+        'store_address',
+        'is_suspended', // [GPT] Menambahkan field penting agar bisa di-mass assign
     ];
 
     protected $hidden = [
@@ -40,6 +48,11 @@ public function givenRatings()
 public function products()
 {
     return $this->hasMany(Product::class, 'user_id');
+}
+// [GPT] Relasi ke order_logs
+public function orderLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+{
+    return $this->hasMany(OrderLog::class, 'performed_by');
 }
 
 }

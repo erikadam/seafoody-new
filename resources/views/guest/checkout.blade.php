@@ -1,114 +1,142 @@
+
 @extends('layouts.guest')
 
 @section('content')
-<div class="page-heading header-text">
-  <div class="container">
-    <h1>Checkout</h1>
-  </div>
-</div>
 
-<div class="container py-5">
-  <div class="row">
-    {{-- Ringkasan Produk --}}
-    <div class="col-lg-6">
-      <h4 class="mb-3">Ringkasan Pesanan</h4>
+<style>
+.text-orange {
+    color: #f75f36;
+}
+</style>
 
-      @php $grandTotal = 0; @endphp
+<div class="container py-5 mt-5">
+    <h1 class="mb-4">Checkout</h1>
 
-      @foreach ($groupedCart as $sellerName => $items)
-        <div class="mb-4 border rounded p-3">
-          <h6 class="mb-2">Toko: <strong>{{ $sellerName }}</strong></h6>
-          <ul class="list-unstyled">
-            @foreach ($items as $item)
-              @php
-                $subtotal = $item->product->price * $item->quantity;
-                $grandTotal += $subtotal;
-              @endphp
-              <li class="d-flex align-items-center justify-content-between border-bottom py-2">
-                <div class="d-flex align-items-center">
-                  <img src="{{ asset('uploads/product/' . $item->product->image) }}" alt="{{ $item->product->name }}"
-                    class="rounded" style="width: 60px; height: 60px; object-fit: cover; margin-right: 15px;">
-                  <div>
-                    <div class="fw-bold">{{ $item->product->name }}</div>
-                    <small class="text-muted">Qty: {{ $item->quantity }}</small>
-                  </div>
-                </div>
-                <div class="text-end fw-semibold">Rp{{ number_format($subtotal, 0, ',', '.') }}</div>
-              </li>
-            @endforeach
-          </ul>
-        </div>
-      @endforeach
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @elseif (session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
 
-      <div class="text-end mt-4">
-        <h5>Total: <span class="text-primary">Rp{{ number_format($grandTotal, 0, ',', '.') }}</span></h5>
-      </div>
-    </div>
-
-    {{-- Form Pembeli --}}
-    <div class="col-lg-6">
-      <h4 class="mb-3">Informasi Pemesan</h4>
-      <form action="{{ route('guest.checkout.process') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('guest.checkout.process') }}" method="POST" enctype="multipart/form-data">
         @csrf
-
-        <div class="form-group mb-3">
-          <label>Nama Lengkap</label>
-          <input type="text" name="buyer_name" class="form-control" required>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Nomor WhatsApp</label>
-          <input type="text" name="buyer_phone" class="form-control" required>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Alamat Lengkap</label>
-          <textarea name="buyer_address" rows="3" class="form-control" placeholder="RT/RW, Kelurahan, Kecamatan, Kabupaten" required></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-          <label>Metode Pembayaran</label><br>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_method" value="cash" checked>
-            <label class="form-check-label">COD</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_method" value="transfer">
-            <label class="form-check-label">Transfer Bank</label>
-          </div>
-        </div>
-
-        <div id="transfer-proof-section" class="form-group mb-3 d-none">
-          <div class="alert alert-warning small">
-            💳 Silakan transfer ke <strong>A.n Rosa - 9999999 (Bank Mandiri)</strong>, lalu upload bukti transfer di bawah ini.
-          </div>
-          <label>Upload Bukti Transfer</label>
-          <input type="file" name="transfer_proof" class="form-control">
-        </div>
-
-        <div class="text-end mt-4">
-          <button type="submitOrder" class="btn btn-primary px-4">Proses Checkout</button>
-        </div>
-      </form>
-    </div>
-  </div>
+        <div class="row">
+            <!-- Left: Info Pemesan -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <strong>Informasi Pemesan</strong>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+    <label for="name" class="form-label">Nama Lengkap</label>
+    <input type="text" name="buyer_name" readonly class="form-control-plaintext" id="name"
+           value="{{ old('name', auth()->check() ? auth()->user()->name : '') }}"
+           class="form-control rounded" required>
 </div>
+<div class="mb-3">
+    <label for="email" class="form-label">Alamat Email</label>
+    <input type="email" name="buyer_email" readonly class="form-control-plaintext" id="email"
+           value="{{ old('email', auth()->check() ? auth()->user()->email : '') }}"
+           class="form-control rounded" required>
+</div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Nomor WhatsApp</label>
+                            <input type="text" name="buyer_phone" id="phone"
+                                   value="{{ old('phone') }}"
+                                   class="form-control rounded" placeholder="08xxxxxxxxxx" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Alamat Lengkap</label>
+                            <textarea name="buyer_address" id="address"
+                                      class="form-control rounded" rows="3"
+                                      required>{{ old('name', auth()->user()->store_address) }}
+                                    </textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Metode Pembayaran</label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="payment_method" id="cash" value="cash" checked>
+                                <label class="form-check-label" for="cash">Bayar di Tempat (COD)</label>
+</div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio"
+                                       name="payment_method" id="transfer" value="transfer">
+                                <label class="form-check-label" for="transfer">Transfer Bank</label>
+                            </div>
+                        </div>
+                        <div class="mb-3 d-none" id="proof-container">
+                            <label for="payment_proof" class="form-label">Upload Bukti Transfer</label>
+                            <input type="file" name="transfer_proof" id="payment_proof"
+                                   class="form-control rounded">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Ringkasan Produk -->
+            <div class="col-md-6 mb-4">
+                @foreach ($groupedCart as $sellerName => $items)
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-light">
+                            <strong>Toko: {{ $sellerName }}</strong>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                @foreach ($items as $item)
+
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="me-auto">
+                                            <div class="fw-bold">{{ $item['product']['name'] }}</div>
+                                            Jumlah: {{ $item['quantity'] }}
+                                        </div>
+                                        <span class="text-orange">
+                                            Rp{{ number_format($item['product']['price'] * $item['quantity'], 0, ',', '.') }}
+                                        </span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endforeach
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-end">
+                        <h5>Total Belanja:
+                            <strong class="text-orange">@php $grandTotal = 0; @endphp
+@foreach ($groupedCart as $items)
+  @foreach ($items as $item)
+    @php $grandTotal += $item['product']['price'] * $item['quantity']; @endphp
+  @endforeach
+@endforeach
+<strong class="text-orange">Rp{{ number_format($grandTotal, 0, ',', '.') }}</strong></strong>
+                        </h5>
+                        <button type="submit" class="btn btn-lg btn-success mt-3">Konfirmasi Pesanan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const radios = document.querySelectorAll('input[name="payment_method"]');
-    const proofSection = document.getElementById('transfer-proof-section');
+document.addEventListener('DOMContentLoaded', function () {
+  const radios = document.querySelectorAll('input[name="payment_method"]');
+  const proofContainer = document.getElementById('proof-container');
 
-    function toggleProof() {
-      if (document.querySelector('input[name="payment_method"]:checked').value === 'transfer') {
-        proofSection.classList.remove('d-none');
-      } else {
-        proofSection.classList.add('d-none');
-      }
-    }
+  function toggleProofField() {
+    const selected = document.querySelector('input[name="payment_method"]:checked');
+    if (!selected) return;
+    proofContainer.classList.toggle('d-none', selected.value !== 'transfer');
+  }
 
-    radios.forEach(r => r.addEventListener('change', toggleProof));
-    toggleProof(); // on page load
-  });
+  radios.forEach(radio => radio.addEventListener('change', toggleProofField));
+  toggleProofField(); // Initial run
+});
 </script>
+
+
 @endsection

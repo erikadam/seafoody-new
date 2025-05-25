@@ -10,6 +10,8 @@
     @if($products->count())
         <div class="row">
             @foreach($products as $product)
+        {{-- [GPT] Cek status akun --}}
+
                 <div class="col-md-4 mb-4">
                     {{-- [GPT] Kartu produk --}}
                     <div class="card h-100 shadow-sm border-0">

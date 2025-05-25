@@ -2,38 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Models\Product;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class GuestOrderController extends Controller
 {
     public function showCheckoutForm()
     {
-        $cart = session()->get('cart', []);
+        $cartEntries = session()->get('cart', []);
 
-        if (empty($cart)) {
-            return redirect('/')->with('error', 'Keranjang Anda kosong.');
-        }
-
-        $cartItems = [];
-        foreach ($cart as $productId => $entry) {
-            $product = Product::with('seller')->find($productId);
-            if ($product) {
-                $cartItems[] = (object)[
-                    'product' => $product,
-                    'quantity' => $entry['quantity'],
+        $cartItems = collect($cartEntries)
+            ->map(function ($data, $productId) {
+                $product = Product::with('seller')->find($productId);
+                if (! $product) {
+                    return null;
+                }
+                return [
+                    'product'  => $product,
+                    'quantity' => isset($data['quantity']) ? (int) $data['quantity'] : 1,
                 ];
-            }
-        }
+            })
+            ->filter();
 
-        $groupedCart = collect($cartItems)->groupBy(function ($item) {
-            return $item->product->seller->name ?? 'Toko Tidak Dikenal';
+        $groupedCart = $cartItems->groupBy(function ($item) {
+            return $item['product']->seller->name;
         });
 
         return view('guest.checkout', compact('groupedCart'));
@@ -41,75 +38,96 @@ class GuestOrderController extends Controller
 
     public function submitOrder(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'buyer_name' => 'required|string|max:255',
-            'buyer_phone' => 'required|string|max:20',
-            'buyer_address' => 'required|string',
+        $request->validate([
+            'buyer_name'     => 'required|string|max:255',
+            'buyer_phone'    => 'required|string',
+            'buyer_address'  => 'required|string',
             'payment_method' => 'required|in:cash,transfer',
-            'transfer_proof' => 'nullable|image|max:2048',
+            'transfer_proof' => 'required_if:payment_method,transfer|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-        if ($validator->fails()) {
-            return redirect()->back()->withErrors($validator)->withInput();
+        if (! Auth::check()) {
+            return redirect()->route('login')
+                             ->with('error', 'Silakan login terlebih dahulu untuk checkout.');
         }
 
-        $cart = session()->get('cart', []);
-        if (empty($cart)) {
-            return redirect()->back()->with('error', 'Keranjang belanja kosong.');
+        $cartEntries = session()->get('cart', []);
+        if (empty($cartEntries)) {
+            return back()->with('error', 'Keranjang Anda kosong.');
         }
+
+        $items = collect($cartEntries)->map(function ($data, $productId) {
+            $product = Product::findOrFail($productId);
+            $qty     = isset($data['quantity']) ? (int) $data['quantity'] : 1;
+            return [
+                'product'  => $product,
+                'quantity' => $qty,
+            ];
+        });
+
+        $grandTotal = $items->sum(function ($item) {
+            return $item['product']->price * $item['quantity'];
+        });
 
         DB::beginTransaction();
-
         try {
             $proofPath = null;
             if ($request->payment_method === 'transfer' && $request->hasFile('transfer_proof')) {
-                $proofPath = $request->file('transfer_proof')->store('transfer_proofs', 'public');
+                $proofPath = $request->file('transfer_proof')->store('transfer-proofs', 'public');
             }
 
-            $token = Str::random(40);
+            $firstProduct = $items->first()['product'];
+            $productList  = $items->map(function ($item) {
+                return [
+                    'product_id' => $item['product']->id,
+                    'quantity'   => $item['quantity'],
+                ];
+            })->toJson();
+
             $order = Order::create([
-                'buyer_name' => $request->buyer_name,
-                'buyer_phone' => $request->buyer_phone,
-                'buyer_address' => $request->buyer_address,
+                'user_id'        => Auth::id(),
+                'product_id'     => $firstProduct->id,
+                'buyer_name'     => $request->buyer_name,
+                'buyer_phone'    => $request->buyer_phone,
+                'buyer_address'  => $request->buyer_address,
                 'payment_method' => $request->payment_method,
                 'transfer_proof' => $proofPath,
-                'token' => $token,
+                'product_list'   => $productList,
+                'total_price'    => $grandTotal,
+                'token'          => Str::random(40),
+                'status'         => $request->payment_method === 'transfer'
+                                    ? 'waiting_admin_confirmation'
+                                    : 'in_process_by_customer',
             ]);
 
-            foreach ($cart as $productId => $item) {
-                $quantity = $item['quantity'];
-                $product = Product::findOrFail($productId);
-
-                if ($product->stock < $quantity) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', "Stok produk {$product->name} tidak mencukupi.");
-                }
-
-                $product->decrement('stock', $quantity);
+            foreach ($items as $item) {
+                $prod  = $item['product'];
+                $qty   = $item['quantity'];
+                $itemStatus = $request->payment_method === 'transfer'
+                               ? 'waiting_admin_confirmation'
+                               : 'in_process_by_customer';
 
                 OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $product->id,
-                    'seller_id' => $product->user_id,
-                    'quantity' => $quantity,
-                    'price' => $product->price,
-                    'status' => $request->payment_method === 'transfer'
-                        ? 'waiting_admin_confirmation'
-                        : 'in_process_by_customer',
+                    'order_id'   => $order->id,
+                    'product_id' => $prod->id,
+                    'seller_id'  => $prod->user_id,
+                    'quantity'   => $qty,
+                    'price'      => $prod->price,
+                    'status'     => $itemStatus,
                 ]);
+
+                $prod->decrement('stock', $qty);
             }
 
             DB::commit();
             session()->forget('cart');
 
-            $order->load('orderItems');
-            session()->put('order', $order);
-
-            return redirect()->route('guest.track.order');
-
+            return redirect()
+                   ->route('guest.track.order')
+                   ->with('success', 'Pesanan berhasil diproses.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memproses pesanan: ' . $e->getMessage());
         }
     }
 }

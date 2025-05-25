@@ -28,11 +28,13 @@ class ProfileController extends Controller
         return back()->with('status', 'Profil berhasil diperbarui.');
     }
 
-    // [GPT] Menangani pengajuan menjadi penjual
+    // [GPT] Menangani pengajuan menjadi penjual dengan validasi lengkap
     public function requestSeller(Request $request)
     {
         $request->validate([
-            'store_name' => 'required|string|max:255'
+            'store_name' => 'required|string|max:255',
+            'store_description' => 'required|string',
+            'store_address' => 'required|string',
         ]);
 
         $user = Auth::user();
@@ -41,12 +43,15 @@ class ProfileController extends Controller
             return back()->with('status', 'Anda sudah mengajukan permintaan. Mohon tunggu persetujuan admin.');
         }
 
-        $user->store_name = $request->store_name; // [GPT] Simpan nama toko
+        $user->store_name = $request->store_name;
+        $user->store_description = $request->store_description;
+        $user->store_address = $request->store_address;
         $user->requested_seller = true;
         $user->save();
 
         return back()->with('status', 'Permintaan upgrade berhasil dikirim.');
     }
+
 
     // [GPT] Tambahan fitur kirim ulang verifikasi email
     public function sendVerification(Request $request)

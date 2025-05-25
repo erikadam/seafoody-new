@@ -85,3 +85,35 @@
         new bootstrap.Modal(document.getElementById('deleteModal')).show();
     }
 </script>
+
+<!-- [GPT] Modal Setujui Upgrade Akun -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="" id="approveForm">
+      @csrf
+      <input type="hidden" name="user_id" id="approveUserId">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Setujui Permintaan Upgrade</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <p>Apakah Anda yakin ingin menyetujui permintaan upgrade akun ini menjadi Akun Customer?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Setujui</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- [GPT] Script untuk set action dinamis pada modal approve -->
+<script>
+function showApproveModal(userId) {
+    document.getElementById('approveUserId').value = userId;
+    document.getElementById('approveForm').action = '/admin/users/' + userId + '/approve';
+    new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+</script>

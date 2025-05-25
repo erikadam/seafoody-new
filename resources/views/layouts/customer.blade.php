@@ -50,7 +50,7 @@
     <h4 class="mb-4">Toko: {{ Auth::user()->store_name ?? Auth::user()->name }}</h4>
     <nav class="nav flex-column">
       <a class="nav-link {{ request()->is('customer/dashboard') ? 'active' : '' }}" href="{{ url('customer/dashboard') }}">
-        <i class="fa fa-chart-line me-2"></i> Dashboard
+        <i class="#"></i> Dashboard
       </a>
       <a class="nav-link {{ request()->is('customer/products/create') ? 'active' : '' }}" href="{{ url('customer/products/create') }}">
         <i class="fa fa-upload me-2"></i> Tambah Produk
@@ -58,6 +58,11 @@
       <a class="nav-link {{ request()->is('customer/products/my-product') ? 'active' : '' }}" href="{{ url('customer/products/my-product') }}">
         <i class="fa fa-box-open me-2"></i> Produk Saya
       </a>
+      <li class="nav-item">
+  <a class="nav-link" href="{{ route('customer.orders.index') }}">
+    <i class="fa fa-chart-line me-2"></i> Management
+  </a>
+</li>
       <a class="nav-link {{ request()->is('customer/profile') ? 'active' : '' }}" href="{{ url('customer/profile') }}">
         <i class="fa fa-user me-2"></i> Profil
       </a>
