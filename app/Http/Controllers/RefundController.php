@@ -14,31 +14,30 @@ class RefundController extends Controller
     // [GPT] Pembeli mengajukan refund
 
     public function requestRefund(Request $request, $id)
-{
-    $item = OrderItem::with('order')->findOrFail($id);
+    {
+        $item = OrderItem::with('order')->findOrFail($id);
 
-    if ($item->status !== 'shipped_by_customer') {
-        return back()->with('error', 'Refund hanya bisa diajukan saat barang sedang dikirim.');
+        if ($item->status !== 'received_by_buyer') {
+            return back()->with('error', 'Refund hanya bisa diajukan setelah barang diterima.');
+        }
+
+        $request->validate([
+            'refund_reason' => 'required|string|max:255',
+            'refund_proof' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('refund_proof')) {
+            $proofPath = $request->file('refund_proof')->store('refund_proofs', 'public');
+            $item->refund_proof = $proofPath;
+        }
+
+        $item->refund_reason = $request->refund_reason;
+        $item->status = 'return_requested';
+        $item->save();
+
+        return redirect()->route('guest.track.order')->with('success', 'Permintaan refund berhasil dikirim.');
     }
 
-    $request->validate([
-        'reason' => 'required|string',
-        'bank_name' => 'required|string',
-        'bank_account' => 'required|string',
-    ]);
-
-    $item->refund_reason = $request->reason;
-    $item->refund_bank_name = $request->bank_name;
-    $item->refund_account_number = $request->bank_account;
-    $item->refund_requested = true;
-    $item->refund_requested_at = now();
-    $item->status = 'return_requested';
-    $item->refund_requested = true;
-    $item->refund_requested_at = now();
-    $item->save();
-
-    return redirect()->route('guest.track.order')->with('success', 'Permintaan refund berhasil diajukan.');
-}
 
 
 
@@ -94,7 +93,7 @@ class RefundController extends Controller
     {
         $item = OrderItem::with('product')->findOrFail($id);
 
-        if ($item->status !== 'shipped_by_customer') {
+        if ($item->status !== 'received_by_buyer') {
             return back()->with('error', 'Refund hanya bisa diajukan saat barang sedang dikirim.');
         }
 
@@ -119,5 +118,18 @@ public function showUploadProofForm($id)
     return view('admin.refunds.upload-proof', compact('item'));
 }
 
+ public function refundForm($id)
+    {
+        $item = OrderItem::with('product')->findOrFail($id);
 
+        if ($item->status !== 'received_by_buyer') {
+            return back()->with('error', 'Refund hanya bisa diajukan setelah barang diterima.');
+        }
+
+        return view('guest.refund-form', compact('item'));
+    }
 }
+
+
+
+

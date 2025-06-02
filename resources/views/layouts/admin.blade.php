@@ -2,79 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{{ $title ?? config('app.name', 'Admin Panel') }}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- Unified CSS from guest layout -->
-  <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
-  <link href="{{ asset('assets/css/font-awesome.css') }}" rel="stylesheet">
-  <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- [GPT] Font Awesome icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"> <!-- [GPT] Bootstrap -->
   <style>
-    .admin-wrapper {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: row;
+    body {
+      background-color: #f8f9fa;
     }
     .sidebar {
-      width: 240px;
-      background-color: #f8f9fa;
+      min-height: 100vh;
+      background-color: #343a40;
+      color: white;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      padding: 10px 20px;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .content {
       padding: 20px;
-      height: 100vh;
-      position: sticky;
-      top: 0;
     }
-    .main-content {
-      flex-grow: 1;
-      padding: 30px;
-      background-color: #fff;
-    }
-    .nav-link.active {
+    .sidebar .logo {
+      font-size: 1.5rem;
       font-weight: bold;
-      color: #0d6efd;
+      text-align: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #6c757d;
     }
   </style>
-
-  @yield('head')
 </head>
 <body>
+<div class="d-flex">
+  <!-- Sidebar -->
+  <div class="sidebar p-3">
+    <div class="logo mb-4">
+      <i class="fas fa-user-shield me-2"></i>Admin Panel
+    </div>
+    <a href="{{ route('admin.dashboard') }}">
+      <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+    </a>
+    <a href="{{ route('admin.users.index') }}">
+      <i class="fas fa-users me-2"></i> Manajemen User
+    </a>
+    <a href="{{ route('admin.products.pending') }}">
+      <i class="fas fa-box-open me-2"></i> Persetujuan Produk
+    </a>
+    <a href="{{ route('admin.refunds') }}">
+      <i class="fas fa-undo-alt me-2"></i> Refund Transaksi
+    </a>
+    <a href="{{ route('admin.transfers.index') }}">
+      <i class="fas fa-money-check-alt me-2"></i> Validasi Transfer
+    </a>
+    <a href="{{ route('admin.reports.pdf') }}">
+      <i class="fas fa-file-pdf me-2"></i> Laporan PDF
+    </a>
+    <a href="{{ route('admin.reports.excel') }}">
+      <i class="fas fa-file-excel me-2"></i> Laporan Excel
+    </a>
+    <form method="POST" action="{{ route('logout') }}">
+      @csrf
+      <button type="submit" class="btn btn-outline-light w-100 mt-4">
+        <i class="fas fa-sign-out-alt me-2"></i> Logout
+      </button>
+    </form>
+  </div>
 
-<div class="admin-wrapper">
-  {{-- Sidebar --}}
-  <aside class="sidebar">
-    <h4 class="mb-4">Admin Panel</h4>
-    <nav class="nav flex-column">
-        <li class="nav-item">
-  <a class="nav-link" href="{{ route('admin.refunds') }}">
-    <i class="bi bi-arrow-counterclockwise me-2"></i> Refund Pembeli
-  </a>
-</li>
-      <a class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}" href="{{ url('admin/dashboard') }}">Dashboard</a>
-      <a class="nav-link {{ request()->is('admin/users') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">Approval User</a>
-      <li class="nav-item"><a class="nav-link" href="{{ url('admin/users/management') }}"><i class="fa fa-users me-2"></i> Manajemen User</a></li>
-      @php
-    $pendingCount = \App\Models\Product::where('status', 'pending')->count();
-@endphp
-<a class="nav-link {{ request()->is('admin/products*') ? 'active' : '' }}" href="{{ route('admin.products.pending') }}">
-    Approval Produk
-    @if ($pendingCount > 0)
-        <span class="badge bg-danger">{{ $pendingCount }}</span>
-    @endif
-</a>
-
-      <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <button type="submit" class="btn btn-sm btn-danger mt-3">Logout</button>
-      </form>
-    </nav>
-  </aside>
-
-  {{-- Main Content --}}
-  <main class="main-content">
+  <!-- Main Content -->
+  <div class="content flex-grow-1">
     @yield('content')
-  </main>
+  </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-@stack('scripts')
 </body>
 </html>

@@ -111,12 +111,13 @@ Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group
 });
 
 
-
 // Customer Routes
 Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])->group(function () {
+    Route::post('/order-items/{id}/refund-request', [RefundController::class, 'requestRefund'])->name('refund.request');
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
     Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('customer.profile.edit');
-    Route::post('/profile', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
+    Route::post('/profile', [CustomerProfileController::class, 'update'])->name('customer.profile.edit');;
+    Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('customer.profile.update'); // [GPT] Tambahan route update profile
 
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
@@ -128,7 +129,6 @@ Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])-
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit'); // [GPT] Route edit produk
     Route::get('/products/show/{id}', [ProductController::class, 'show'])->name('products.show'); // [GPT] Route lihat produk
-
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('customer.orders.index');
     Route::post('/orders/{id}/status', [CustomerOrderController::class, 'updateStatus'])->name('customer.orders.updateStatus');
     Route::post('/customer/orders/{id}/approve-refund', [CustomerOrderController::class, 'approveRefundBySeller'])
@@ -156,9 +156,7 @@ Route::put('/profile/update-password', [\App\Http\Controllers\ProfileController:
 
 
 // [GPT] Pembeli ajukan refund
-Route::post('/order-items/{id}/refund-request', [RefundController::class, 'requestRefund'])
-    ->middleware('auth', 'checkrole:user,customer')
-    ->name('refund.request');
+
 
 // [GPT] Penjual setujui refund
 Route::post('/seller/order-items/{id}/approve-refund', [RefundController::class, 'approveRefundBySeller'])
@@ -172,6 +170,6 @@ Route::post('/admin/order-items/{id}/process-refund', [RefundController::class, 
 
 
 // ==================== [GPT] Tambahan Route Admin Transfer ====================
-
+Route::post('/order-items/{id}/received', [\App\Http\Controllers\OrderItemController::class, 'markAsReceived'])->name('order.received');
 
 

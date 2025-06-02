@@ -217,11 +217,4 @@ a:hover .hover-lift-title {
         @endforelse
     </div>
   </section>
-
-
-<!-- [GPT] Cleaned & Centered Category Banner -->
-
-
-
-
 @endsection

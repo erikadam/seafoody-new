@@ -36,6 +36,8 @@ public function printReceipt($id)
 
     public function index()
     {
+
+
         $orders = Order::with(['items.logs', 'items.product.seller'])
                        ->where('user_id', auth()->id())
                        ->latest()

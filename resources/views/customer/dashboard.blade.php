@@ -1,15 +1,16 @@
 
 @extends('layouts.customer')
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> {{-- [GPT] Bootstrap --}}
+    <link rel="stylesheet" href="{{ asset('css/font-awesome.css') }}"> {{-- [GPT] Font Awesome --}}
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}"> {{-- [GPT] Custom Style --}}
+@endpush
+
+
+
 @section('content')
 <div class="container-fluid py-4">
-    {{-- [GPT] Header dashboard --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="h4 text-primary">Dashboard Toko Anda</h2>
-        <a href="{{ url('/') }}" class="btn btn-outline-primary">
-            <i class="fa fa-home"></i> Kembali ke Home
-        </a>
-    </div>
 
     {{-- [GPT] Informasi Toko --}}
     <div class="card mb-4 shadow-sm">
@@ -21,7 +22,14 @@
             <p><strong>Email:</strong> {{ Auth::user()->email }}</p>
         </div>
     </div>
-
+     <div class="mb-3">
+        <a href="#" class="btn btn-danger btn-sm me-2">
+            <i class="fa fa-file-pdf-o"></i> Download PDF
+        </a>
+        <a href="#" class="btn btn-success btn-sm">
+            <i class="fa fa-file-excel-o"></i> Download Excel
+        </a>
+    </div>
     {{-- [GPT] Tabel Pesanan Masuk --}}
     <div class="card shadow-sm">
         <div class="card-header bg-white fw-bold border-bottom">

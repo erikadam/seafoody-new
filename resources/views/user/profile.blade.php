@@ -36,22 +36,21 @@
             <form method="POST" action="{{ route('verification.send') }}" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-warning btn-sm ms-2">Verifikasi</button>
-<div id="editProfileForm" class="mt-4 d-none">
-    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-        <div class="mb-3 text-start">
-            <label for="name" class="form-label">Nama Lengkap</label>
-            <input type="text" class="form-control" name="name" value="{{ Auth::user()->name }}" required>
+                <div id="editProfileForm" class="mt-4 d-none">
+                 <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                 @csrf
+                    @method('PUT')
+                 <div class="mb-3 text-start">
+                    <label for="name" class="form-label">Nama Lengkap</label>
+                    <input type="text" class="form-control" name="name" value="{{ Auth::user()->name }}" required>
+                </div>
+                    <div class="mb-3 text-start">
+                    <label for="avatar" class="form-label">Foto Profil</label>
+                    <input type="file" class="form-control" name="avatar">
+                </div>
+            <button type="submit" class="btn btn-success w-100">Simpan Perubahan</button>
+        </form>
         </div>
-        <div class="mb-3 text-start">
-            <label for="avatar" class="form-label">Foto Profil</label>
-            <input type="file" class="form-control" name="avatar">
-        </div>
-        <button type="submit" class="btn btn-success w-100">Simpan Perubahan</button>
-    </form>
-</div>
-
             </form>
             <div class="text-danger small mt-1">Email anda belum diverifikasi</div>
         @endif
