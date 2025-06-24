@@ -29,16 +29,16 @@
         <td>{{ $user->email }}</td>
         <td>
             @if ($user->is_suspended)
-                <span class="badge bg-warning">Disuspend dari Customer</span> {{-- [GPT] --}}
+                <span class="badge bg-warning">Disuspend dari Customer</span>
             @else
-                <span class="badge bg-secondary">User Baru</span> {{-- [GPT] --}}
+                <span class="badge bg-secondary">User Baru</span>
             @endif
         </td>
         <td>
             @if ($user->is_suspended)
                 <button class="btn btn-sm btn-outline-success" onclick="showUnsuspendModal({{ $user->id }})">
                     Aktifkan Kembali
-                </button> {{-- [GPT] --}}
+                </button>
             @endif
             <button class="btn btn-sm btn-outline-danger" onclick="showDeleteModal({{ $user->id }})">Hapus</button>
         </td>

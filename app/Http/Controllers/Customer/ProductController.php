@@ -21,6 +21,11 @@ class ProductController
     $product = Product::findOrFail($id);
     return view('customer.products.show', compact('product'));
 }
+public function shows($id)
+{
+    $product = Product::where('status', 'approved')->findOrFail($id);
+    return view('guest.products.show', compact('product'));
+}
     public function create()
     {
 

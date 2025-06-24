@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-// [GPT] Verifikasi email dibuat opsional
+
 
 class User extends Authenticatable
 {
@@ -23,7 +23,7 @@ class User extends Authenticatable
         'store_logo',
         'store_description',
         'store_address',
-        'is_suspended', // [GPT] Menambahkan field penting agar bisa di-mass assign
+        'is_suspended',
     ];
 
     protected $hidden = [
@@ -49,7 +49,7 @@ public function products()
 {
     return $this->hasMany(Product::class, 'user_id');
 }
-// [GPT] Relasi ke order_logs
+
 public function orderLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
 {
     return $this->hasMany(OrderLog::class, 'performed_by');

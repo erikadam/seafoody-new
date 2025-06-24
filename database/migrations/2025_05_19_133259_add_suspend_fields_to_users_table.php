@@ -8,9 +8,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->boolean('is_suspended')->default(false)->after('remember_token'); // [GPT] Status akun
-            $table->text('suspend_reason')->nullable()->after('is_suspended');       // [GPT] Alasan suspend
-            $table->text('deleted_reason')->nullable()->after('suspend_reason');     // [GPT] Alasan penghapusan
+            $table->boolean('is_suspended')->default(false)->after('remember_token');
+            $table->text('suspend_reason')->nullable()->after('is_suspended');
+            $table->text('deleted_reason')->nullable()->after('suspend_reason');
         });
     }
 

@@ -28,7 +28,7 @@ class ProfileController extends Controller
         return back()->with('status', 'Profil berhasil diperbarui.');
     }
 
-    // [GPT] Menangani pengajuan menjadi penjual dengan validasi lengkap
+
     public function requestSeller(Request $request)
     {
         $request->validate([
@@ -53,7 +53,7 @@ class ProfileController extends Controller
     }
 
 
-    // [GPT] Tambahan fitur kirim ulang verifikasi email
+
     public function sendVerification(Request $request)
     {
         $user = $request->user();
@@ -67,7 +67,6 @@ class ProfileController extends Controller
         return back()->with('status', 'Link verifikasi telah dikirim ke email Anda.');
     }
 
-    // [GPT] Ubah password dari halaman profil
     public function updatePassword(Request $request)
     {
         $request->validate([

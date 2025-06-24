@@ -19,7 +19,7 @@ class CheckRole
             abort(403);
         }
 
-        // [GPT] Tambahan: jika akun disuspend, tolak akses dashboard toko
+
         if ($user->is_suspended && $request->is('customer/*')) {
             return redirect('/')->with('error', 'Akun toko Anda sedang disuspend. Silakan hubungi admin.');
         }

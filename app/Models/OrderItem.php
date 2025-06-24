@@ -24,6 +24,7 @@ class OrderItem extends Model
         'refund_requested',
         'refund_requested_at',
         'refund_reason',
+        'refund_proof',
         'refund_bank_name',
         'refund_account_name',
         'refund_account_number',
@@ -45,7 +46,7 @@ class OrderItem extends Model
         return $this->belongsTo(User::class, 'seller_id');
     }
 
-    // [GPT] Relasi dengan order_logs
+
     public function logs(): HasMany
     {
         return $this->hasMany(OrderLog::class);

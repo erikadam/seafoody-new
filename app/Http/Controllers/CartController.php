@@ -11,7 +11,7 @@ class CartController extends Controller
     {
         $cart = session()->get('cart', []);
 
-        // Ubah isi session cart menjadi koleksi berisi objek produk dan quantity
+
         $cartItems = collect($cart)->map(function ($item, $productId) {
             $product = Product::with('seller')->find($productId);
 
@@ -21,7 +21,7 @@ class CartController extends Controller
             ];
         });
 
-        // Group berdasarkan nama toko (seller)
+
         $groupedCart = $cartItems->groupBy(function ($item) {
             return $item->product->seller->name ?? 'Toko Tidak Dikenal';
         });
@@ -30,22 +30,36 @@ class CartController extends Controller
     }
 
     public function add(Request $request)
-    {
-        $productId = $request->product_id;
-        $quantity = $request->quantity;
+{
+    $productId = $request->product_id;
+    $quantity = $request->quantity;
 
-        $cart = session()->get('cart', []);
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] += $quantity;
-        } else {
-            $cart[$productId] = [
-                'quantity' => $quantity
-            ];
-        }
+    $product = \App\Models\Product::find($productId);
 
-        session()->put('cart', $cart);
-        return back()->with('success', 'Produk ditambahkan ke keranjang');
+    if (!$product) {
+        return back()->with('error', 'Produk tidak ditemukan.');
     }
+
+    // Cek apakah user mencoba menambahkan produk miliknya sendiri
+    if (auth()->check() && $product->user_id === auth()->id()) {
+        return back()->with('Anda tidak dapat menambahkan produk milik sendiri ke keranjang.');
+    }
+
+    $cart = session()->get('cart', []);
+
+    if (isset($cart[$productId])) {
+        $cart[$productId]['quantity'] += $quantity;
+    } else {
+        $cart[$productId] = [
+            'quantity' => $quantity
+        ];
+    }
+
+    session()->put('cart', $cart);
+
+    return back()->with('success', 'Produk ditambahkan ke keranjang');
+}
+
 
     public function update(Request $request)
     {

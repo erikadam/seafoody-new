@@ -22,7 +22,10 @@
   <li class="dropdown" style="position: relative;">
     <a href="#" class="dropdown-toggle d-flex align-items-center px-3 py-1 rounded" data-toggle="dropdown"
        style="background-color: rgba(243, 85, 37, 0.85); color: white; border-radius: 6px;">
-      <img src="{{ Auth::user()->avatar ?? '/images/default-avatar.png' }}" width="22" height="22" class="rounded-circle me-2">
+      <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : '/images/default-avatar.png' }}"
+     width="22" height="22"
+     class="rounded-circle me-2"
+     style="object-fit: cover;">
       <span style="font-size: 14px;">{{ Auth::user()->name }}</span>
     </a>
     <ul class="dropdown-menu mt-1" style="background-color: rgba(243, 85, 37, 0.95); border-radius: 8px; min-width: 140px;">

@@ -2,15 +2,12 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    {{-- [GPT] Judul dan header --}}
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary">Produk Saya</h2>
         <a href="{{ url('customer/products/create') }}" class="btn btn-outline-primary">
             <i class="fa fa-plus"></i> Tambah Produk
         </a>
     </div>
-
-    {{-- [GPT] Tabel produk --}}
     <div class="card shadow-sm">
         <div class="card-body p-0">
             @if($products->count())

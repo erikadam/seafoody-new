@@ -2,10 +2,8 @@
 
 @section('content')
 <div class="container py-4">
-    {{-- [GPT] Halaman detail produk --}}
     <div class="card shadow-sm border-0">
         <div class="row g-0">
-            {{-- [GPT] Gambar produk --}}
             <div class="col-md-5">
                 @if($product->image)
                 <img src="{{ asset('uploads/product/' . $product->image) }}" class="img-fluid rounded-start w-100 h-100 object-fit-cover" alt="{{ $product->name }}">
@@ -15,8 +13,6 @@
                 </div>
                 @endif
             </div>
-
-            {{-- [GPT] Informasi produk --}}
             <div class="col-md-7">
                 <div class="card-body">
                     <h2 class="card-title text-primary">{{ $product->name }}</h2>

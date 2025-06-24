@@ -39,6 +39,16 @@
                         @endif
                     </div>
                 </div>
+
+                <div class="bg-white rounded-lg shadow-md p-4">
+                    <h3 class="text-lg font-semibold mb-2">{{ $product->name }}</h3>
+                    <p class="text-sm text-gray-700 mb-2">Rp{{ number_format($product->price) }}</p>
+                    @if (auth()->check() && $product->user_id === $userId)
+                        <span class="text-sm text-red-500">Produk milik Anda</span>
+                    @else
+                        <a href="{{ route('cart.add', $product->id) }}" class="btn btn-primary">Beli</a>
+                    @endif
+                </div>
             @endforeach
         </div>
     @else

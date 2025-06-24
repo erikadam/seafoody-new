@@ -11,37 +11,45 @@ use App\Traits\LogsOrderStatus;
 
 class RefundController extends Controller
 {   use LogsOrderStatus;
-    // [GPT] Pembeli mengajukan refund
+
+
 
     public function requestRefund(Request $request, $id)
-    {
-        $item = OrderItem::with('order')->findOrFail($id);
+{
+    $item = OrderItem::with('order')->findOrFail($id);
 
-        if ($item->status !== 'received_by_buyer') {
-            return back()->with('error', 'Refund hanya bisa diajukan setelah barang diterima.');
-        }
-
-        $request->validate([
-            'refund_reason' => 'required|string|max:255',
-            'refund_proof' => 'nullable|image|max:2048',
-        ]);
-
-        if ($request->hasFile('refund_proof')) {
-            $proofPath = $request->file('refund_proof')->store('refund_proofs', 'public');
-            $item->refund_proof = $proofPath;
-        }
-
-        $item->refund_reason = $request->refund_reason;
-        $item->status = 'return_requested';
-        $item->save();
-
-        return redirect()->route('guest.track.order')->with('success', 'Permintaan refund berhasil dikirim.');
+    if ($item->status !== 'received_by_buyer') {
+        return back()->with('error', 'Refund hanya bisa diajukan setelah barang diterima.');
     }
 
+    $request->validate([
+        'refund_reason' => 'required|string|max:255',
+        'refund_proof' => 'nullable|image|max:2048',
+        'refund_bank_name' => 'nullable|string|max:255',
+        'refund_account_number' => 'nullable|string|max:50',
+    ]);
 
+    if ($request->hasFile('refund_proof')) {
+        $proofPath = $request->file('refund_proof')->store('refund_proofs', 'public');
+        $item->refund_proof = $proofPath;
+    }
 
+    $item->refund_reason = $request->refund_reason;
 
-    // [GPT] Seller menyetujui refund
+    // Hanya simpan info rekening jika transfer
+    if ($item->order->payment_method === 'transfer') {
+        $item->refund_bank_name = $request->refund_bank_name;
+        $item->refund_account_number = $request->refund_account_number;
+    }
+
+    $item->status = 'return_requested';
+    $item->refund_requested = true;
+    $item->refund_requested_at = now();
+    $item->save();
+
+    return redirect()->route('guest.track.order')->with('success', 'Permintaan refund berhasil dikirim.');
+}
+
     public function approveRefundBySeller($id)
     {
         $item = OrderItem::findOrFail($id);
@@ -58,7 +66,7 @@ class RefundController extends Controller
         return back()->with('success', 'Refund disetujui. Menunggu proses admin.');
     }
 
-    // [GPT] Admin memproses refund
+
     public function processRefundByAdmin(Request $request, $id)
     {
         $request->validate([
@@ -67,6 +75,7 @@ class RefundController extends Controller
 
         $item = OrderItem::findOrFail($id);
         $proofPath = $request->file('admin_transfer_proof')->store('public/refund_proofs');
+$item->status = 'return_requested'; // tetap
 
         $item->update([
             'status' => 'refunded',
@@ -77,8 +86,22 @@ class RefundController extends Controller
         $this->log($item, 'refunded', 'Refund ditransfer oleh admin');
         return back()->with('success', 'Refund telah diproses dan bukti berhasil diunggah.');
     }
+public function uploadProof(Request $request, $id)
+{
+    $item = OrderItem::with('order')->findOrFail($id);
 
-    // [GPT] Logging helper
+    $request->validate([
+        'admin_transfer_proof' => 'required|image|max:2048',
+    ]);
+
+    $path = $request->file('admin_transfer_proof')->store('admin_refund_proofs', 'public');
+
+    $item->admin_transfer_proof = $path;
+    $item->save();
+
+    return back()->with('success', 'Bukti transfer telah diunggah dan dikirim ke pembeli.');
+}
+
     protected function log(OrderItem $item, $action, $note = null)
     {
         OrderLog::create([
@@ -101,11 +124,11 @@ class RefundController extends Controller
     }
     public function listRefunds()
 {
-    $items = OrderItem::with(['product', 'order.user', 'product.seller'])
-                      ->where('status', 'return_requested')
-                      ->get();
+    $refunds = OrderItem::with(['product.user', 'order.user'])
+        ->where('status', 'return_requested')
+        ->get();
 
-    return view('admin.refunds.index', compact('items'));
+    return view('admin.refunds.index', compact('refunds'));
 }
 public function showUploadProofForm($id)
 {
@@ -128,6 +151,7 @@ public function showUploadProofForm($id)
 
         return view('guest.refund-form', compact('item'));
     }
+
 }
 
 

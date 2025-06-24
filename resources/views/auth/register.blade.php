@@ -12,7 +12,7 @@
     <div class="col-md-6 bg-white p-4 shadow rounded">
       <h4 class="text-center mb-4">Register</h4>
       <form method="POST" action="{{ route('register') }}">
-        {{-- [GPT] Menampilkan error validasi --}}
+
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">

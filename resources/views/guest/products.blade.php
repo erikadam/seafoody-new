@@ -40,8 +40,8 @@
       <div class="col-lg-10 offset-lg-1">
         <div class="cta-content">
           <br><br>
-          <h2>Judul <em>Kategori</em></h2>
-          <p>Deskripsi singkat kategori akan Anda isi nanti.</p>
+          <h2>Kategori <em>Pilihan</em></h2>
+          <p>Lebih mudah dengan memilih apa yang anda mau.</p>
         </div>
       </div>
     </div>

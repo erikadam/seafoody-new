@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    {{-- [GPT] Header halaman --}}
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="h4 text-primary">Daftar Produk</h2>
     </div>
@@ -10,10 +10,7 @@
     @if($products->count())
         <div class="row">
             @foreach($products as $product)
-        {{-- [GPT] Cek status akun --}}
-
                 <div class="col-md-4 mb-4">
-                    {{-- [GPT] Kartu produk --}}
                     <div class="card h-100 shadow-sm border-0">
                         @if($product->image)
                         <img src="{{ asset('uploads/product/' . $product->image) }}" class="card-img-top rounded-top" alt="{{ $product->name }}">
@@ -28,7 +25,7 @@
             @endforeach
         </div>
 
-        {{-- [GPT] Navigasi halaman --}}
+
         <div class="d-flex justify-content-center mt-4">
             {{ $products->links() }}
         </div>

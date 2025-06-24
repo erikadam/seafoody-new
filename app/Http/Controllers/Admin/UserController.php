@@ -27,7 +27,7 @@ class UserController extends Controller
         $user = User::findOrFail($request->user_id);
 
         if ($user->role === 'customer') {
-            $user->role = 'user'; // [GPT] Turunkan role menjadi user
+            $user->role = 'user';
         }
 
         $user->is_suspended = true;
@@ -55,14 +55,14 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Akun berhasil dihapus.');
     }
 
-    // [GPT] Fungsi untuk mengaktifkan kembali user yang disuspend (berdasarkan is_approved)
+
     public function unsuspend(Request $request)
     {
         $user = User::findOrFail($request->user_id);
         $user->is_suspended = false;
         $user->status = 'active';
 
-        // [GPT] Jika sebelumnya sudah di-approve menjadi penjual
+
         if ($user->role === 'user' && $user->is_approved) {
             $user->role = 'customer';
         }

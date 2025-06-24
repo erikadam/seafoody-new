@@ -191,7 +191,7 @@ a:hover .hover-lift-title {
                 <div class="card-body d-flex flex-column px-0">
                     <h6 class="text-muted small mb-1">Penjual: {{ $product->seller->name ?? 'Tidak diketahui' }}</h6>
                     <h5 class="fw-semibold text-dark mb-1">{{ $product->name }}</h5>
-                    <p class="text-muted small mb-2">{{ Str::limit($product->description, 60) }}</p>
+                    <p class="text-muted small mb-2">{{ Str::limit($product->description, 40) }}</p>
                     <div class="fw-semibold fs-5 mb-3" style="color: #f75f36;">
                             Rp{{ number_format($product->price, 0, ',', '.') }}
                     </div>
@@ -218,3 +218,4 @@ a:hover .hover-lift-title {
     </div>
   </section>
 @endsection
+

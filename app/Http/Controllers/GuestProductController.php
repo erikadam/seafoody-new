@@ -9,15 +9,31 @@ class GuestProductController extends Controller
 {
     public function index()
     {
-        $products = Product::where('status', 'approved')->latest()->get();
-        return view('guest.home', compact('products'));
-    }
-    public function product()
-    {
-        $products = Product::where('status', 'approved')->latest()->get();
+        $userId = auth()->id();
+
+        $products = Product::where('status', 'approved')
+            ->when($userId, function ($query) use ($userId) {
+                return $query->where('user_id', '!=', $userId);
+            })
+            ->latest()
+            ->get();
+
         return view('guest.products.index', compact('products'));
     }
 
+    public function product()
+    {
+        $userId = auth()->id();
+
+        $products = Product::where('status', 'approved')
+            ->when($userId, function ($query) use ($userId) {
+                return $query->where('user_id', '!=', $userId);
+            })
+            ->latest()
+            ->get();
+
+        return view('guest.products.index', compact('products'));
+    }
 
     public function show($id)
 {

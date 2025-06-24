@@ -1,77 +1,114 @@
 @extends('layouts.customer')
 
 @section('content')
-<div class="container py-4">
-    <h2 class="text-2xl font-bold mb-4">Manajemen Pesanan</h2>
+<div class="container mt-4">
+    <h4 class="mb-4">Daftar Pesanan Masuk ke Toko Anda</h4>
 
-    @if($orderItems->count() > 0)
-        <table class="table-auto w-full text-left bg-white shadow rounded-lg">
-            <thead class="bg-gray-100 text-sm">
-                <tr>
-                    <th class="px-4 py-2 border-b">Produk</th>
-                    <th class="px-4 py-2 border-b">Qty</th>
-                    <th class="px-4 py-2 border-b">Harga</th>
-                    <th class="px-4 py-2 border-b">Pembeli</th>
-                    <th class="px-4 py-2 border-b">Metode</th>
-                    <th class="px-4 py-2 border-b">Status</th>
-                    <th class="px-4 py-2 border-b">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($orderItems as $item)
-                    <tr class="border-t hover:bg-gray-50">
-                        <td class="px-4 py-2">{{ $item->product->name }}</td>
-                        <td class="px-4 py-2">{{ $item->quantity }}</td>
-                        <td class="px-4 py-2">Rp{{ number_format($item->price, 0, ',', '.') }}</td>
-                        <td class="px-4 py-2">
-                            {{ $item->order->buyer_name }}<br>
-                            <small>{{ $item->order->buyer_phone }}</small>
-                        </td>
-                        <td class="px-4 py-2 capitalize">{{ $item->order->payment_method }}</td>
-                        <td class="px-4 py-2 capitalize">{{ str_replace('_', ' ', $item->status) }}</td>
-                        <td class="px-4 py-2">
-                            @if($item->status === 'accepted_by_admin')
-                                <form action="{{ route('customer.orders.updateStatus', $item->id) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="status" value="in_process_by_customer">
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">Siapkan</button>
-                                </form>
-
-                            @elseif($item->status === 'in_process_by_customer')
-                                <form action="{{ route('customer.orders.updateStatus', $item->id) }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="status" value="shipped_by_customer">
-                                    <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm">Kirim</button>
-                                </form>
-
-                            @elseif($item->status === 'shipped_by_customer')
-                                <span class="text-gray-500 text-sm">Menunggu Konfirmasi Pembeli</span>
-
-                            @elseif($item->status === 'completed')
-                                <span class="text-green-600 font-semibold text-sm">Selesai</span>
-
-                            @elseif($item->status === 'return_requested')
-                                <form method="POST" action="{{ route('customer.refund.approve', $item->id) }}">
-                                    @csrf
-                                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm"
-                                        onclick="return confirm('Setujui refund item ini?')">
-                                        Setujui Refund
-                                    </button>
-                                </form>
-
-                            @elseif($item->status === 'waiting_admin_confirmation')
-                                <span class="text-yellow-600 text-sm">Menunggu Admin</span>
-
-                            @else
-                                <span class="text-red-500 text-sm">Status: {{ $item->status }}</span>
-                            @endif
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    @else
-        <p class="text-gray-600">Belum ada pesanan yang dapat ditampilkan.</p>
+    @if (session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+    @elseif (session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
     @endif
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-striped align-middle text-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Produk</th>
+                        <th>Jumlah</th>
+                        <th>Pembeli</th>
+                        <th>Status</th>
+                        <th>Metode Bayar</th>
+                        <th class="text-center">Aksi</th>
+                        <th>Bukti Penyerahan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($order_items as $item)
+                        <tr>
+                            <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>{{ $item->order->user->name }}</td>
+                            <td>
+                                <span class="badge
+                                    @if($item->status === 'received_by_buyer') bg-success
+                                    @elseif($item->status === 'in_process_by_customer') bg-warning
+                                    @elseif($item->status === 'accepted_by_admin') bg-primary
+                                    @elseif($item->status === 'shipped_by_admin') bg-info
+                                    @elseif($item->status === 'delivering') bg-info
+                                    @else bg-secondary @endif">
+                                    {{ ucfirst(str_replace('_', ' ', $item->status)) }}
+                                </span>
+                            </td>
+                            <td><strong>{{ strtoupper($item->order->payment_method) }}</strong></td>
+                            <td class="text-center">
+                                {{-- Tombol aksi penjual --}}
+                                @if ($item->order->payment_method === 'transfer')
+                                    {{-- Siapkan --}}
+                                    @if ($item->status === 'accepted_by_admin')
+                                        <form action="{{ route('customer.order.prepare', $item->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-warning btn-sm">Siapkan</button>
+                                        </form>
+                                    @endif
+                                    {{-- Serahkan ke Admin --}}
+                                    @if ($item->status === 'in_process_by_customer')
+                                        <form action="{{ route('customer.order.handover', $item->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-info btn-sm">Serahkan ke Admin</button>
+                                        </form>
+                                    @endif
+                                @endif
+@if ($item->status === 'in_process_by_customer')
+    @if ($item->order->payment_method === 'cash' || $item->order->payment_method === 'cod')
+        <form action="{{ route('customer.order.handoverBuyerCOD', $item->id) }}" method="POST">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">Serahkan ke Pembeli</button>
+        </form>
+    @endif
+
+@endif
+{{-- Tombol Setujui Refund --}}
+@if ($item->status === 'return_requested')
+    <form action="{{ route('refund.approve', $item->id) }}" method="POST" class="mt-2">
+        @csrf
+        <button type="submit" class="btn btn-danger btn-sm">
+            @if ($item->order->payment_method === 'transfer')
+                Setujui Refund (Transfer)
+            @else
+                Selesaikan Refund COD
+            @endif
+        </button>
+    </form>
+@endif
+                                {{-- Status info --}}
+                                @if ($item->status === 'shipped_by_customer')
+                                    <span class="text-muted">Menunggu Konfirmasi Pembeli</span>
+                                @elseif ($item->status === 'shipped_by_admin')
+                                    <span class="text-info">Menunggu pengantaran admin</span>
+                                @elseif ($item->status === 'delivering')
+                                    <span class="text-info">Dalam Pengantaran Admin</span>
+                                @elseif ($item->status === 'received_by_buyer')
+                                    <span class="text-success">Pesanan Selesai</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($item->admin_delivery_proof)
+                                    <a href="{{ asset('storage/' . $item->admin_delivery_proof) }}" target="_blank" class="badge bg-success">Lihat Bukti</a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Belum ada pesanan</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 @endsection

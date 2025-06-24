@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('store_name')->nullable()->after('name'); // [GPT] Tambah kolom nama toko
+            $table->string('store_name')->nullable()->after('name');
         });
     }
 

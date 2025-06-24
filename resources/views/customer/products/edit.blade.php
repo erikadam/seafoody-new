@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container py-4">
-    {{-- [GPT] Form edit produk --}}
+
     <h2 class="h4 mb-4 text-primary">Edit Produk</h2>
     <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
         @csrf @method('PUT')

@@ -1,0 +1,8 @@
+2025-06-03T12:25:11.240Z
+Error: Unknown column 'st.expression' in 'field list'
+    at PromiseConnection.query (C:\Users\rikchodam\AppData\Roaming\npm\node_modules\@dbml\cli\node_modules\mysql2\lib\promise\connection.js:29:22)
+    at generateIndexes (C:\Users\rikchodam\AppData\Roaming\npm\node_modules\@dbml\cli\node_modules\@dbml\connector\dist\connectors\mysqlConnector.js:201:40)
+    at fetchSchemaJson (C:\Users\rikchodam\AppData\Roaming\npm\node_modules\@dbml\cli\node_modules\@dbml\connector\dist\connectors\mysqlConnector.js:375:9)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async connectionHandler (C:\Users\rikchodam\AppData\Roaming\npm\node_modules\@dbml\cli\lib\cli\connector.js:24:24)
+

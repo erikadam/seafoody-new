@@ -2,17 +2,12 @@
 @extends('layouts.customer')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}"> {{-- [GPT] Bootstrap --}}
-    <link rel="stylesheet" href="{{ asset('css/font-awesome.css') }}"> {{-- [GPT] Font Awesome --}}
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}"> {{-- [GPT] Custom Style --}}
-@endpush
-
-
-
+    <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/font-awesome.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+endpush
 @section('content')
 <div class="container-fluid py-4">
-
-    {{-- [GPT] Informasi Toko --}}
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-white fw-bold border-bottom">
             <i class="fa fa-store"></i> Informasi Toko
@@ -30,7 +25,6 @@
             <i class="fa fa-file-excel-o"></i> Download Excel
         </a>
     </div>
-    {{-- [GPT] Tabel Pesanan Masuk --}}
     <div class="card shadow-sm">
         <div class="card-header bg-white fw-bold border-bottom">
             <i class="fa fa-box"></i> Pesanan Masuk

@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.css') }}">
   <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- [GPT] Font Awesome icons -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"> <!-- [GPT] Bootstrap -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <style>
     body {
       background-color: #f8f9fa;
@@ -67,6 +67,11 @@
         <i class="fa fa-sign-out"></i> Logout
       </a>
         </li>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{{ url('/') }}" class="btn btn-outline-primary">
+            <i class="fa fa-home"></i> Kembali ke Home
+        </a>
+    </div>
     <hr>
     <nav class="nav flex-column px-3">
       <a class="nav-link {{ request()->is('customer/dashboard') ? 'active' : '' }}" href="{{ url('customer/dashboard') }}">
@@ -81,11 +86,7 @@
       <a class="nav-link {{ request()->is('customer/orders') ? 'active' : '' }}" href="{{ url('customer/orders') }}">
         <i class="fa fa-box-open me-2"></i> Orders
       </a>
-<div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="{{ url('/') }}" class="btn btn-outline-primary">
-            <i class="fa fa-home"></i> Kembali ke Home
-        </a>
-    </div>
+
 
       <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         @csrf

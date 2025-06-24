@@ -12,6 +12,7 @@
 <div class="container py-5 mt-5">
     <h1 class="mb-4">Checkout</h1>
 
+
     @if (session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @elseif (session('error'))
@@ -69,8 +70,8 @@
                         </div>
                         <div class="mb-3 d-none" id="proof-container">
                             <label for="payment_proof" class="form-label">Upload Bukti Transfer</label>
-                            <input type="file" name="transfer_proof" id="payment_proof"
-                                   class="form-control rounded">
+                            <input type="file" name="payment_proof" id="payment_proof" class="form-control rounded">
+
                         </div>
                     </div>
                 </div>
@@ -119,6 +120,8 @@
             </div>
         </div>
     </form>
+
+
 </div>
 
 
@@ -136,6 +139,12 @@ document.addEventListener('DOMContentLoaded', function () {
   radios.forEach(radio => radio.addEventListener('change', toggleProofField));
   toggleProofField(); // Initial run
 });
+</script>
+<script>
+    setTimeout(() => {
+        const alert = document.querySelector('.fixed.top-5');
+        if (alert) alert.remove();
+    }, 4000); // 4 detik
 </script>
 
 

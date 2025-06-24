@@ -1,4 +1,4 @@
-{{-- [GPT] Modal Alasan Admin --}}
+
 
 <!-- Modal Suspend -->
 <div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
@@ -68,7 +68,7 @@
   </div>
 </div>
 
-{{-- [GPT] Script untuk isi ID --}}
+
 <script>
     function showSuspendModal(id) {
         document.getElementById('suspendUserId').value = id;
@@ -86,7 +86,7 @@
     }
 </script>
 
-<!-- [GPT] Modal Setujui Upgrade Akun -->
+
 <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form method="POST" action="" id="approveForm">
@@ -109,7 +109,7 @@
 </div>
 
 
-<!-- [GPT] Script untuk set action dinamis pada modal approve -->
+
 <script>
 function showApproveModal(userId) {
     document.getElementById('approveUserId').value = userId;

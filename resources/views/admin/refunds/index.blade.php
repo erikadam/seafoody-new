@@ -2,53 +2,70 @@
 
 @section('content')
 <div class="container py-4">
-  <h4 class="fw-bold mb-4">📄 Daftar Permintaan Refund</h4>
+    <h2 class="mb-4">Daftar Permintaan Refund</h2>
 
-  @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
-  @endif
-  @if(session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-  @endif
+    <table class="table table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Produk</th>
+                <th>Pembeli</th>
+                <th>Penjual</th>
+                <th>Alasan</th>
+                <th>Bank</th>
+                <th>No. Rekening</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($refunds as $key => $item)
+            <tr>
+                <td>{{ $key + 1 }}</td>
+                <td>{{ $item->product->name }}</td>
+                <td>{{ $item->order->user->name ?? '-' }}</td>
+                <td>{{ $item->product->user->store_name ?? '-' }}</td>
+                <td>{{ $item->refund_reason }}</td>
+                <td>{{ $item->refund_bank_name ?? '-' }}</td>
+                <td>{{ $item->refund_account_number ?? '-' }}</td>
+                <td>
+                    @if(optional($item->order)->payment_method === 'transfer')
+                        <!-- Tombol buka modal upload -->
+                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#uploadModal{{ $item->id }}">
+                            Setujui
+                        </button>
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>#</th>
-          <th>Produk</th>
-          <th>Pembeli</th>
-          <th>Penjual</th>
-          <th>Alasan</th>
-          <th>Bank</th>
-          <th>No. Rekening</th>
-          <th>Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        @forelse($items as $item)
-          <tr>
-            <td>{{ $loop->iteration }}</td>
-            <td>{{ $item->product->name }}</td>
-            <td>{{ $item->order->user->name ?? '-' }}</td>
-            <td>{{ $item->product->seller->name ?? '-' }}</td>
-            <td>{{ $item->refund_reason ?? '-' }}</td>
-            <td>{{ $item->bank_name ?? '-' }}</td>
-            <td>{{ $item->bank_account ?? '-' }}</td>
-            <td>
-              <form method="POST" action="{{ route('admin.refund.approve', $item->id) }}">
-                @csrf
-                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Setujui permintaan refund ini?')">Setujui</button>
-              </form>
-            </td>
-          </tr>
-        @empty
-          <tr>
-            <td colspan="8" class="text-center text-muted">Tidak ada permintaan refund.</td>
-          </tr>
-        @endforelse
-      </tbody>
+                        <!-- Modal Upload Bukti Transfer -->
+                        <div class="modal fade" id="uploadModal{{ $item->id }}" tabindex="-1" aria-labelledby="uploadModalLabel{{ $item->id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <form action="{{ route('admin.refund.upload', $item->id) }}" method="POST" enctype="multipart/form-data">
+                              @csrf
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title" id="uploadModalLabel{{ $item->id }}">Upload Bukti Refund</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                  <div class="mb-3">
+                                    <label class="form-label">Upload Bukti Transfer</label>
+                                    <input type="file" name="admin_transfer_proof" class="form-control" required accept="image/*">
+                                  </div>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="submit" class="btn btn-primary">Upload & Setujui</button>
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                </div>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                    @else
+                        <span class="text-muted">Menunggu aksi dari penjual</span>
+                    @endif
+                </td>
+            </tr>
+            @endforeach
+        </tbody>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </table>
-  </div>
 </div>
 @endsection

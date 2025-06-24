@@ -20,6 +20,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\AdminOrderController;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RefundController;
 use App\Http\Controllers\TrackOrderController;
@@ -28,14 +30,11 @@ use App\Http\Controllers\OrderItemController;
 // Home (guest)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/dashboard', function () {
-    // This page will be accessible only by verified users
 })->middleware('verified');
 Auth::routes(['verify' => true]);
 Route::get('/home', [HomeController::class, 'index'])->name('home');
 // Guest Product Routes
 Route::get('/produk', [GuestProductController::class, 'filtered'])->name('guest.products.index');
-
-
 Route::get('/products/{product}', [GuestProductController::class, 'show'])->name('guest.products.show');
 
 // Guest Cart
@@ -56,15 +55,11 @@ Route::middleware('auth')
 Route::middleware('auth')->get('/checkout', [GuestOrderController::class, 'showCheckoutForm'])->name('guest.checkout.form');
 Route::get('/order-status/{token}', [GuestOrderController::class, 'trackOrder'])->name('guest.track.order');
 Route::post('/order/confirm/{id}', [GuestOrderController::class, 'confirmReceived'])->name('guest.order.confirm');
+Route::middleware(['auth'])->group(function () {
+    Route::post('/order/{id}/confirm', [GuestOrderController::class, 'confirmReceipt'])->name('order.confirm');
+});
 Route::post('/cart/update', [CartController::class, 'update'])->name('guest.cart.update');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('guest.cart.remove');
-
-
-
-
-// Guest Track Order
-
-
 Route::get('/track-order/result', [TrackOrderController::class, 'searchByToken'])->name('guest.track.result');
 Route::get('/nota-pdf/{token}', [TrackOrderController::class, 'downloadPdf'])->name('guest.download.pdf');
 Route::get('/track-order', [TrackOrderController::class, 'index'])->middleware('auth')->name('guest.track.order');
@@ -99,7 +94,16 @@ Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group
     Route::post('/admin/refunds/{id}/approve', [RefundController::class, 'approveRefundBySeller'])->name('admin.refund.approve');
     Route::get('/admin/refunds/{id}/upload', [RefundController::class, 'showUploadProofForm'])->name('admin.refund.upload.form');
     Route::post('/admin/refunds/{id}/process', [RefundController::class, 'processRefundByAdmin'])->name('admin.refund.process');
-
+    Route::get('/admin/refunds', [RefundController::class, 'listRefunds'])->name('admin.refunds');
+    Route::post('/admin/refund/{item}/upload', [AdminTransferController::class, 'uploadProof'])->name('admin.refund.upload');
+    // Admin: mulai antar barang (ubah status jadi delivering)
+    Route::post('/admin/order-item/{id}/start-delivery', [\App\Http\Controllers\Admin\AdminOrderController::class, 'startDelivery'])->name('admin.order.startDelivery');
+    // Admin: selesaikan pengantaran + upload bukti
+    Route::post('/admin/order-item/{id}/complete-delivery', [\App\Http\Controllers\Admin\AdminOrderController::class, 'completeDelivery'])->name('admin.order.completeDelivery');
+    // Untuk mulai antar
+    Route::post('/admin/order-item/{id}/start-delivery', [AdminOrderController::class, 'startDelivery'])->name('admin.order.startDelivery');
+    // Untuk upload bukti penyerahan ke pembeli
+    Route::post('/admin/order-item/{id}/complete-delivery', [AdminOrderController::class, 'completeDelivery'])->name('admin.order.completeDelivery');
 
 
 
@@ -115,10 +119,9 @@ Route::prefix('admin')->middleware(['auth', CheckRole::class . ':admin'])->group
 Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])->group(function () {
     Route::post('/order-items/{id}/refund-request', [RefundController::class, 'requestRefund'])->name('refund.request');
     Route::get('/dashboard', [CustomerController::class, 'dashboard'])->name('customer.dashboard');
-    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('customer.profile.edit');
-    Route::post('/profile', [CustomerProfileController::class, 'update'])->name('customer.profile.edit');;
-    Route::post('/profile/update', [CustomerProfileController::class, 'update'])->name('customer.profile.update'); // [GPT] Tambahan route update profile
-
+    Route::post('/profile', [CustomerProfileController::class, 'update'])->name('customer.profile.edit');
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('customer.profile.update');
+    Route::post('/order-items/{id}/refund-request', [CustomerProfileController::class, 'update'])->name('customer.profile.update');
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
@@ -127,13 +130,28 @@ Route::prefix('customer')->middleware(['auth', CheckRole::class . ':customer'])-
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-    Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit'); // [GPT] Route edit produk
-    Route::get('/products/show/{id}', [ProductController::class, 'show'])->name('products.show'); // [GPT] Route lihat produk
+    Route::get('/products/edit/{id}', [ProductController::class, 'edit'])->name('products.edit');
+    Route::get('/products/show/{id}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}', [GuestProductController::class, 'shows'])->name('guest.products.show');
     Route::get('/orders', [CustomerOrderController::class, 'index'])->name('customer.orders.index');
     Route::post('/orders/{id}/status', [CustomerOrderController::class, 'updateStatus'])->name('customer.orders.updateStatus');
-    Route::post('/customer/orders/{id}/approve-refund', [CustomerOrderController::class, 'approveRefundBySeller'])
-    ->name('customer.refund.approve');
+    Route::post('/customer/refund/{id}/approve', [OrderItemController::class, 'approveRefundByCustomer'])->name('customer.refund.approve');
+    Route::post('/customer/refund/{id}/reject', [OrderItemController::class, 'rejectRefundByCustomer'])->name('customer.refund.reject');
+    Route::post('/customer/refund/approve/{id}', [CustomerOrderController::class, 'approveRefund'])->name('customer.refund.approve');
+    // Approve refund oleh penjual
+Route::post('/refunds/{id}/approve', [\App\Http\Controllers\RefundController::class, 'approveRefundBySeller'])->name('refund.approve');
+
+Route::post('/customer/refund/approve-request/{id}', [CustomerOrderController::class, 'approveRefundRequest'])->name('customer.refund.approve-request');
+Route::post('/customer/refund/confirm/{id}', [CustomerOrderController::class, 'confirmRefundReceived'])->name('customer.refund.confirm');
+// Route untuk aksi seller (penjual)
+Route::post('/customer/order-items/{id}/prepare', [App\Http\Controllers\Customer\CustomerOrderController::class, 'prepareOrder'])->name('customer.order.prepare');
+Route::post('/customer/order-items/{id}/handover', [App\Http\Controllers\Customer\CustomerOrderController::class, 'handoverToAdmin'])->name('customer.order.handover');
+Route::post('customer/order-item/{id}/processing', [CustomerOrderController::class, 'processing'])->name('customer.order.processing');
+Route::post('order-item/{id}/handover-buyer-cod', [CustomerOrderController::class, 'handoverBuyerCOD'])
+    ->name('customer.order.handoverBuyerCOD');
+
 });
+
 
 Route::post('/email/verification-notification', function (Request $request) {
     $request->user()->sendEmailVerificationNotification();
@@ -141,35 +159,15 @@ Route::post('/email/verification-notification', function (Request $request) {
     return back()->with('status', 'verification-link-sent');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
-
-// [GPT] Route untuk ajukan menjadi seller
-Route::post('/profile/request-seller', [\App\Http\Controllers\ProfileController::class, 'requestSeller'])->name('profile.request_seller')->middleware('auth');
-
-
-// [GPT] Route untuk kirim ulang verifikasi email
-Route::post('/profile/send-verification', [\App\Http\Controllers\ProfileController::class, 'sendVerification'])->middleware('auth')->name('profile.send_verification');
-
-// [GPT] Route untuk update password dari halaman profil
-Route::put('/profile/update-password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->middleware('auth')->name('profile.update_password');
-
-// ==================== [GPT] Tambahan Route Refund ====================
-
-
-// [GPT] Pembeli ajukan refund
-
-
-// [GPT] Penjual setujui refund
+Route::post('/profile/request-seller', [ProfileController::class, 'requestSeller'])->name('profile.request_seller')->middleware('auth');
+Route::post('/profile/send-verification', [ProfileController::class, 'sendVerification'])->middleware('auth')->name('profile.send_verification');
+Route::put('/profile/update-password', [ProfileController::class, 'updatePassword'])->middleware('auth')->name('profile.update_password');
 Route::post('/seller/order-items/{id}/approve-refund', [RefundController::class, 'approveRefundBySeller'])
     ->middleware('auth', 'checkrole:customer')
     ->name('refund.approve.seller');
-
-// [GPT] Admin proses refund
 Route::post('/admin/order-items/{id}/process-refund', [RefundController::class, 'processRefundByAdmin'])
     ->middleware('auth', 'checkrole:admin')
     ->name('refund.process.admin');
-
-
-// ==================== [GPT] Tambahan Route Admin Transfer ====================
 Route::post('/order-items/{id}/received', [\App\Http\Controllers\OrderItemController::class, 'markAsReceived'])->name('order.received');
 
 

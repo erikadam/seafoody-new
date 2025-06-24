@@ -5,8 +5,13 @@
 <div class="container mt-5 py-5" style="max-width: 720px">
     {{-- Avatar dan Profil --}}
     <div class="text-center mb-4">
-        <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : '/images/default-avatar.png' }}"
-             width="100" height="100" class="rounded-circle border shadow-sm mb-2">
+        <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px;">
+  <div style="width: 150px; height: 150px; overflow: hidden; border-radius: 50%; border: 2px solid #ccc; box-shadow: 0 0 8px rgba(0,0,0,0.15);">
+    <img src="{{ Auth::user()->avatar ? asset('storage/' . Auth::user()->avatar) : '/images/default-avatar.png' }}"
+         alt="Avatar"
+         style="width: 100%; height: 100%; object-fit: cover;">
+  </div>
+</div>
         <h4 class="fw-semibold">{{ Auth::user()->name }}</h4>
         <button onclick="toggleEditProfile()" class="btn btn-sm btn-outline-secondary mt-2" type="button">
             <i class="fa fa-pen"></i> Edit Profil
